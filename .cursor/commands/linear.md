@@ -49,10 +49,10 @@ Se o usuário não informar um subcomando, pergunte o que ele quer fazer.
 ## Escopo de alteração
 
 <!-- Quais módulos, features, serviços ou arquivos serão modificados.
-     Siga a arquitetura modular do projeto: modules/<domínio>/features/<feature>/ -->
+     Siga a arquitetura do projeto: `src/app/<domínio>/features/<feature>/` -->
 
 ### Módulos impactados
-- `modules/<domínio>/features/<feature>/` — {descrição do que muda}
+- `src/app/<domínio>/features/<feature>/` — {descrição do que muda}
 
 ### Arquivos-chave esperados
 - `{caminho}` — {motivo}
@@ -76,7 +76,7 @@ Se o usuário não informar um subcomando, pergunte o que ele quer fazer.
 - [ ] Implementação entregue e funcionando localmente
 - [ ] Testes unitários escritos (cobertura dos casos críticos)
 - [ ] Testes E2E listados acima passando
-- [ ] Sem violações de arquitetura (módulos respeitam `index.ts` público, sem imports internos cruzados)
+- [ ] Sem violações de arquitetura (imports diretos a arquivos estáveis entre domínios; sem barrels; sem imports internos indevidos)
 - [ ] PR aprovado com ao menos 1 review
 - [ ] Deploy em staging validado
 - [ ] {critério específico da task}
@@ -87,7 +87,7 @@ Se o usuário não informar um subcomando, pergunte o que ele quer fazer.
 ## Regras ao criar issues
 
 - O título deve ser uma ação clara: prefira verbos como "Adicionar", "Corrigir", "Refatorar", "Remover", "Migrar".
-- O escopo de alteração deve referenciar a estrutura modular do projeto (`modules/<domínio>/features/<feature>/`).
+- O escopo de alteração deve referenciar `src/app/<domínio>/features/<feature>/`.
 - Os testes E2E devem cobrir o caminho feliz e pelo menos um caso de erro/borda relevante.
 - Nunca crie uma issue sem ao menos Contexto e DoD preenchidos.
 - Se o usuário não souber algum campo, deixe um placeholder comentado (`<!-- a definir -->`).

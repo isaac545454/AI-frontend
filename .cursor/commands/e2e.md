@@ -21,7 +21,7 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/e2e`).
 
 2. **Mapeie features impactadas**
    - Para cada arquivo alterado, identifique a feature correspondente seguindo a estrutura:
-     `modules/<domínio>/features/<feature>/` (ou `src/modules/...` se o repo usar prefixo `src/`).
+     `src/app/<domínio>/features/<feature>/`.
    - Agrupe por feature — não por arquivo.
 
 3. **Determine os cenários a cobrir**
@@ -33,8 +33,8 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/e2e`).
    - Se o código contém estado assíncrono: cubra loading, sucesso e falha.
 
 4. **Escreva ou atualize os testes**
-   - Caminho dos testes: `modules/<domínio>/features/<feature>/<feature>.spec.ts` — junto ao `index.ts` da feature (ou sob `src/` se aplicável).
-   - Use a Page Object Model (POM): crie `modules/<domínio>/features/<feature>/<feature>.page.ts` para encapsular seletores e ações.
+   - Caminho dos testes: `src/app/<domínio>/features/<feature>/<feature>.spec.ts` — junto ao arquivo principal da feature (ex. página montada `.tsx`), sem usar barrel `index.ts`.
+   - Use a Page Object Model (POM): crie `src/app/<domínio>/features/<feature>/<feature>.page.ts` para encapsular seletores e ações.
    - Cada `describe` mapeia uma feature. Cada `it`/`test` mapeia um cenário.
    - Prefira seletores semânticos na ordem: `getByRole` > `getByLabel` > `getByTestId` > CSS.
    - Use `data-testid` nos componentes quando não houver seletor semântico disponível — e adicione o atributo junto com o teste.
@@ -65,7 +65,7 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/e2e`).
 
 ## Fluxo: verificar cobertura — `/e2e coverage`
 
-1. Liste todas as features em `modules/*/features/*/` (ou `src/modules/...`) via `find` ou leitura do sistema de arquivos.
+1. Liste todas as features em `src/app/*/features/*/` via `find` ou leitura do sistema de arquivos.
 2. Para cada feature, verifique se existe `<feature>.spec.ts` na pasta da feature.
 3. Compare: mostre quais features têm teste, quais não têm.
 4. Para features sem cobertura, liste os cenários mínimos recomendados.
@@ -86,7 +86,7 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/e2e`).
 
    export default defineConfig({
      testDir: '.',
-     testMatch: '**/modules/**/*.spec.ts',
+     testMatch: '**/app/*/features/**/*.spec.ts',
      fullyParallel: true,
      retries: process.env.CI ? 2 : 0,
      reporter: 'html',
@@ -112,26 +112,20 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/e2e`).
 
 ## Estrutura de arquivos esperada
 
-Os testes ficam junto ao `index.ts` da feature, dentro da própria pasta da feature:
+Os testes ficam na pasta da feature, ao lado dos componentes — **sem** depender de `index.ts` barrel:
 
 ```
-modules/
+src/app/
   auth/
     features/
       login/
         sessions/
           ...
-        index.ts
+        LoginPage.tsx
         login.page.ts
         login.spec.ts
-      reset-password/
-        index.ts
-        reset-password.page.ts
-        reset-password.spec.ts
 playwright.config.ts
 ```
-
-(Se o repositório usar prefixo `src/`, aplique o mesmo layout dentro de `src/`.)
 
 ---
 
@@ -139,7 +133,7 @@ playwright.config.ts
 
 ### Page Object Model
 ```ts
-// modules/auth/features/login/login.page.ts
+// src/app/auth/features/login/login.page.ts
 import { type Page } from '@playwright/test'
 
 export class LoginPage {
@@ -166,7 +160,7 @@ export class LoginPage {
 
 ### Spec file
 ```ts
-// modules/auth/features/login/login.spec.ts
+// src/app/auth/features/login/login.spec.ts
 import { test, expect } from '@playwright/test'
 import { LoginPage } from './login.page'
 
@@ -208,7 +202,7 @@ O projeto roda sem backend. **Toda chamada de rede deve ser interceptada via `pa
 ### Padrão no Page Object
 
 ```ts
-// modules/auth/features/login/login.page.ts
+// src/app/auth/features/login/login.page.ts
 import { type Page } from '@playwright/test'
 
 export class LoginPage {
@@ -252,7 +246,7 @@ export class LoginPage {
 ### Padrão no spec
 
 ```ts
-// modules/auth/features/login/login.spec.ts
+// src/app/auth/features/login/login.spec.ts
 import { test, expect } from '@playwright/test'
 import { LoginPage } from './login.page'
 
@@ -301,7 +295,7 @@ test.describe('Login', () => {
 - **Testes independentes**: cada `test` deve poder rodar isolado. Não dependa de ordem ou estado de outro teste.
 - **Seletores semânticos primeiro**: nunca quebre o teste por uma mudança de classe CSS.
 - **`data-testid` como último recurso**: quando adicionado ao código fonte, documente no POM.
-- **Colocalização**: spec e page object ficam dentro da pasta da feature, ao lado do `index.ts` — `modules/<domínio>/features/<feature>/<feature>.spec.ts` e `<feature>.page.ts` (ou sob `src/` se aplicável). Nunca em uma pasta `e2e/` separada.
+- **Colocalização**: spec e page object ficam dentro da pasta da feature — `src/app/<domínio>/features/<feature>/<feature>.spec.ts` e `<feature>.page.ts`. Nunca em uma pasta `e2e/` separada.
 - **CI-ready**: os testes devem passar em ambiente headless. Evite `page.waitForTimeout` — use esperas explícitas (`waitForURL`, `waitForSelector`, `expect(...).toBeVisible()`).
 
 ---

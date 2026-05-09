@@ -1,44 +1,34 @@
 ---
-description: Onde e como colocar services (API/mock) em módulos e features — nomenclatura, promoção e imports.
+description: Onde colocar services — caminhos por domínio/feature; imports diretos (sem barrels).
 globs: "**/services/**/*.ts"
 alwaysApply: false
 ---
 
 # Camada `services/`
 
-Use sempre a pasta no plural: `services/`, não `service/`.
+Pasta no plural: `services/`.
 
 ## Onde criar o arquivo
 
 | Escopo | Caminho |
 |--------|---------|
-| Só uma feature usa | `src/modules/<domínio>/features/<feature>/services/` |
-| Duas ou mais features do mesmo módulo | `src/modules/<domínio>/services/` (promover) |
-| Primitivo sem regra de negócio entre domínios | `src/shared/` (ex.: cliente HTTP), não service de domínio |
-
-## Responsabilidade
-
-- Coloque aqui chamadas de API, mocks de dados e adaptação de resposta (DTO → tipo de domínio).
-- Não coloque fetch/axios direto em componentes ou em hooks fora do módulo dono do dado.
-
-## Nomenclatura
-
-- Arquivo: `camelCase` + sufixo que deixe claro o papel, ex. `productService.ts`, `authApiClient.ts`.
-- Exporte funções ou um objeto nomeado; evite default export opaco.
+| Uma feature | `src/app/<domínio>/features/<feature>/services/` |
+| Várias features do mesmo domínio | `src/app/<domínio>/services/` (promover) |
+| Cliente HTTP genérico | `src/app/shared/lib/...` |
 
 ## Imports
 
-- **Dentro do módulo:** pode importar de `src/modules/<domínio>/services/...` ou da feature correspondente.
-- **Outro módulo:** só via `modules/<domínio>/index.ts` — nunca `.../services/arquivo` de outro domínio.
+- **Mesmo domínio:** import direto do arquivo do service.
+- **Outro domínio:** import direto do arquivo público acordado (ex. `@/catalog/features/list/catalogService.ts`), **não** via barrel.
 
 ```typescript
-// ✓ outro módulo
-import { listProducts } from "@/modules/catalog";
+// ✓
+import { listProducts } from "@/catalog/features/products/listProducts";
 
-// ✗ vaza interno
-import { listProducts } from "@/modules/catalog/features/product-list/services/productService";
+// ✗ barrel inexistente neste repo
+import { listProducts } from "@/catalog";
 ```
 
-## Estrutura do projeto
+## Estrutura
 
-Este repo usa `src/modules/`, `src/shared/` e alias `@/*` → `./src/*` (ex.: `@/modules/catalog`, `@/shared`).
+Domínios em `src/app/<domínio>/`, shared em `src/app/shared/`, alias `@/*` → `./src/app/*`. Sem `index.ts` agregador — ver skill **no-barrel-files**.

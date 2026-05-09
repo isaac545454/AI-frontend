@@ -1,6 +1,6 @@
 ---
-description: Modular domain-driven architecture — módulos, index.ts público, fronteiras e services por domínio.
-globs: "**/modules/**/*.{ts,tsx}"
+description: Modular domain-driven architecture — domínios em app/<nome>, imports diretos (sem barrels), fronteiras por arquivo canônico.
+globs: "**/app/*/features/**/*.{ts,tsx}"
 alwaysApply: false
 ---
 
@@ -8,128 +8,103 @@ alwaysApply: false
 
 ## Caminhos neste repositório
 
-O `tsconfig` mapeia `@/*` para `./src/*`. Código de aplicação fica em `src/` (`app/`, `shared/`, `modules/`). Config e `public/` permanecem na raiz do projeto.
+O `tsconfig` mapeia `@/*` para `./src/app/*`. Cada domínio de negócio é uma pasta direta em `src/app/<domínio>/`. Infra compartilhada em `src/app/shared/`. Config, `public/` e arquivos de projeto ficam na raiz.
+
+**Sem barrel files:** não usar `index.ts`/`index.tsx` só para re-exportar. Importar sempre do arquivo que define o símbolo (ver skill **no-barrel-files**).
+
+**Fronteira entre domínios:** import explícito até o `.ts`/`.tsx` estável (ex.: `@/payment/features/checkout/CheckoutPage`). Outro domínio não importa pastas internas arbitrárias — apenas os arquivos acordados como API.
 
 ## Core Principle
 
-Every feature belongs to a module. Every module represents a domain.
+Every feature belongs to a domain. Every domain folder under `app/` represents one business domain.
 
 The domain is the unit of ownership. Nothing crosses domain boundaries without an explicit, intentional contract.
 
 ## Directory Structure
 
 ```
-src/                    # opcional — pode ser omitido (pastas na raiz)
-  modules/
-    auth/
-      features/             # user-facing capabilities — ver regra feature-sliced
-        login/
-          ...
-          index.ts
-        reset-password/
-          ...
-          index.ts
-      components/           # shared across features of this module only
-      hooks/                # shared across features of this module only
-      services/             # shared across features of this module only
-      store/                # module-level state shared across features
-      types/                # module-level types shared across features
-      index.ts              # public API — only export what other modules may consume
-    payment/
+src/
+  app/
+    <domain>/
       features/
-        checkout/
+        <feature>/
+          PostList.tsx          # exemplo — página/listagem montada aqui ou em sessions/
           ...
-          index.ts
-        refund/
-          ...
-          index.ts
       components/
       hooks/
       services/
       store/
       types/
-      index.ts
-    <domain>/
-      features/
-        ...
-      ...
-      index.ts
-  shared/               # truly cross-domain primitives (UI kit, http client, i18n)
-  app/                  # app shell — routing, providers, composition root
+      page.tsx
+      layout.tsx
+    shared/
+      components/
+      lib/
+    layout.tsx
+    page.tsx
 ```
 
-> The internal structure of each module follows Feature Sliced Design (regra **feature-sliced**). Every user-facing capability is a feature folder under `features/`. Loose files at the module root exist only to share code across features of the same module.
+Pastas reservadas do App Router seguem o Next.js; o **domínio** é a pasta que agrupa `features/` e camadas compartilhadas intra-domínio.
+
+> Estrutura interna: regra **feature-sliced**. Capabilities em `features/<feature>/`.
 
 ## Rules
 
-### 1. One module = one domain
-- Each folder under `modules/` (ou `src/modules/`) represents exactly one business domain (e.g. `auth`, `payment`, `billing`, `catalog`, `user`, `notification`).
-- Do not create modules named after technical concerns (`utils`, `helpers`, `common`) — those belong in `shared/` if truly generic.
+### 1. One folder under `app/` = one domain (exceto `shared` e rotas puras)
+- Cada `src/app/<domínio>/` (exceto `shared`) é um domínio de negócio.
+- Pastas genéricas (`utils`, `helpers`) → `shared/` se forem genéricas.
 
-### 2. Public API via `index.ts`
-- Every module exposes a single `index.ts` as its public contract.
-- External code may only import from `modules/<domain>/index.ts`, never from internal paths like `modules/payment/services/stripeService.ts`.
-- Internal module files are private by convention.
+### 2. No barrel files
+- Proibido agregador `index.ts` na raiz do domínio, da feature ou do `shared` que só re-exporta.
+- Consumidores importam caminhos explícitos.
 
-### 3. No cross-domain direct imports
-- A module **must not** import directly from another module's internals.
-- If module A needs something from module B, it must be exported through `modules/B/index.ts`.
-- If two modules repeatedly depend on the same primitive, extract it to `shared/`.
+### 3. Cross-domain imports
+- Um domínio **não** importa internals não expostos de outro (ex.: hooks internos, store interno).
+- O que pode ser usado fora deve residir em arquivos com nome/pasta estáveis e importados pelo caminho completo — não via barrel.
 
 ### 4. Shared is not a dumping ground
-- `shared/` is for infrastructure and UI primitives only: design system components, HTTP client, config, i18n, date utils.
-- Business logic never lives in `shared/`. If it has domain meaning, it belongs in a module.
+- `app/shared/` é infra e UI genérica.
+- Negócio fica em `app/<domínio>/`.
 
-### 5. New feature = identify the domain first, then the feature
-- Before creating any file, identify which domain owns this feature.
-- If it belongs to an existing domain, add it inside that module under `features/<feature-name>/`.
-- If no existing domain fits, create a new module with a clear domain name.
-- Never place feature code loose at the module root — it always goes inside a `features/` subfolder.
-- The internal structure of every feature follows the **feature-sliced** rule.
+### 5. New feature
+- Criar em `app/<domínio>/features/<feature>/`.
+- Rotas usam imports diretos das features (ex.: `page.tsx` importa `.../features/post-list/PostList`).
 
-### 6. Store / state is scoped to the module
-- State management (Zustand slice, Redux slice, React context) lives inside the module that owns the data.
-- Cross-domain state sharing is done by consuming the public API, not by merging slices.
+### 6. Store / state
+- Estado no domínio dono; entre domínios, só via código explicitamente importável (arquivo dedicado), não stores internos cruzados.
 
-### 7. Services / API calls are inside the module
-- All API calls related to a domain live in `modules/<domain>/services/` (or feature-level `services/` per feature-sliced).
-- No API call logic in components or hooks outside the owning module.
+### 7. Services
+- Chamadas em `app/<domínio>/services/` ou em `features/.../services/` (feature-sliced).
 
 ## Naming Conventions
 
 | Layer | Convention | Example |
 |---|---|---|
-| Module folder | kebab-case | `payment`, `auth`, `user-profile` |
+| Domain folder | kebab-case | `payment`, `auth` |
 | Component | PascalCase | `PaymentForm.tsx` |
 | Hook | camelCase with `use` prefix | `usePaymentStatus.ts` |
 | Service | camelCase | `paymentService.ts` |
 | Type file | camelCase | `payment.types.ts` |
-| Public export | Named exports in `index.ts` | `export { PaymentForm }` |
 
 ## What to Check on Architecture Changes
 
-When touching folder structure or module boundaries, verify:
-
-- [ ] The new file lives inside the correct domain module
-- [ ] The new file lives inside a `features/<feature-name>/` subfolder, not loose at the module root
-- [ ] No internal path is imported from outside the module
-- [ ] `index.ts` is updated if a new public export is needed
-- [ ] Shared code in `shared/` has no domain-specific logic
-- [ ] No circular dependencies between modules
-- [ ] The feature's internal structure follows the **feature-sliced** rule
+- [ ] Domínio correto em `app/<domínio>/`
+- [ ] Feature em `features/<feature-name>/`
+- [ ] Nenhum barrel novo (`index.ts` só de re-export)
+- [ ] `shared/` sem lógica de um domínio específico
+- [ ] Sem dependências circulares entre domínios
 
 ## Examples
 
 **Correct**
+
 ```ts
-// modules/checkout/hooks/useCheckout.ts
-import { createPayment } from 'modules/payment'   // via public index.ts ✓
-import { getCurrentUser } from 'modules/auth'      // via public index.ts ✓
+import { CheckoutPage } from '@/payment/features/checkout/CheckoutPage'
+import { getCurrentUser } from '@/auth/services/getCurrentUser'
 ```
 
 **Wrong**
+
 ```ts
-// modules/checkout/hooks/useCheckout.ts
-import { stripeService } from 'modules/payment/services/stripeService'  // internal path ✗
-import { authStore } from 'modules/auth/store/authStore'                 // internal path ✗
+import { CheckoutPage } from '@/payment' // barrel ou raiz ambígua ✗
 ```

@@ -90,15 +90,15 @@ Se o usuário não informar subcomando, pergunte o que ele quer fazer.
 
 Este projeto segue **Modular Domain-Driven Architecture** com **Feature Sliced Design** internamente (regras Cursor em `.cursor/rules/`). Antes de qualquer implementação, respeite:
 
-- Código de domínio vive em `modules/<domínio>/features/<feature>/` (na raiz do repo **ou** sob `src/` — alinhe ao `tsconfig`)
-- Módulos se comunicam apenas via `modules/<domínio>/index.ts` público
-- Nunca importe caminhos internos de outro módulo
-- State, services e componentes ficam dentro do módulo que os possui
-- **Types seguem a mesma regra de promoção dos demais artefatos:**
-  - Type usado por uma única feature → `features/<feature>/types/`
-  - Type usado por duas ou mais features do mesmo módulo → `modules/<domínio>/types/`
-  - Type usado por dois ou mais módulos → `shared/types/` (apenas se não tiver lógica de domínio)
-  - Nunca duplique um type — promova-o imediatamente quando a segunda feature precisar dele
+- Código de domínio vive em `src/app/<domínio>/features/<feature>/`
+- **Sem barrel files** — skill `.cursor/skills/no-barrel-files/`; imports diretos ao arquivo que define o símbolo
+- Entre domínios, importar apenas caminhos estáveis explícitos (não internals como stores privados)
+- State, services e componentes ficam no domínio que os possui
+- **Types — promoção:**
+  - Uma feature → `features/<feature>/types/`
+  - Várias features do mesmo domínio → `app/<domínio>/types/`
+  - Vários domínios → `shared/types/` (sem lógica de domínio)
+  - Nunca duplicar — promover quando a segunda consumidora aparecer
 
 ---
 
@@ -195,7 +195,7 @@ Crie `.specs/features/<nome>/spec.md` com:
 - [ ] REQ-002: [como verificar]
 
 ## Módulos impactados
-- `modules/<domínio>/features/<feature>/` — [o que muda]
+- `src/app/<domínio>/features/<feature>/` — [o que muda]
 
 ## Fora do escopo
 - [o que explicitamente NÃO será feito]
@@ -227,13 +227,13 @@ Crie `.specs/features/<nome>/design.md` com:
 
 | Componente | Tipo | Localização | Responsabilidade |
 |------------|------|-------------|-----------------|
-| [Nome] | component/hook/service/store/type | modules/... | [o que faz] |
+| [Nome] | component/hook/service/store/type | app/<domínio>/... | [o que faz] |
 
 ## Fluxo de dados
 [Descreva como os dados fluem: usuário → componente → hook → service → API → store]
 
 ## Integrações
-[APIs externas, serviços, dependências de outros módulos via index.ts público]
+[APIs externas, serviços, dependências de outros domínios via imports diretos a arquivos estáveis — sem barrels]
 
 ## Decisões de design
 | Decisão | Alternativas consideradas | Motivo da escolha |
@@ -245,7 +245,7 @@ Crie `.specs/features/<nome>/design.md` com:
 |-------|--------------|---------|-----------|
 ```
 
-Respeite a estrutura modular: localize cada componente dentro de `modules/<domínio>/features/<feature>/<layer>/`.
+Respeite a estrutura modular: localize cada componente dentro de `src/app/<domínio>/features/<feature>/<layer>/`.
 
 ---
 
@@ -258,7 +258,7 @@ Crie `.specs/features/<nome>/tasks.md` com tarefas atômicas no formato:
 
 ## [ ] TASK-001: [Título curto e ativo]
 - **O que:** [descrição específica]
-- **Onde:** `modules/<domínio>/features/<feature>/<layer>/[arquivo]`
+- **Onde:** `src/app/<domínio>/features/<feature>/<layer>/[arquivo]`
 - **Depende de:** TASK-000 (ou "nenhuma")
 - **Rastreia:** REQ-001, REQ-002
 - **Pronto quando:**

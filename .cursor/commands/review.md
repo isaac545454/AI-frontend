@@ -25,11 +25,11 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/review`).
 Para cada arquivo, avalie:
 
 #### A. Arquitetura e estrutura modular
-- O arquivo está no módulo e feature corretos conforme as regras Cursor **modular-architecture** e **feature-sliced**?
-- Algum import cruza boundary de módulo sem passar pelo `index.ts` público?
+- O arquivo está no domínio e feature corretos conforme as regras Cursor **modular-architecture** e **feature-sliced**?
+- Imports entre domínios apontam para **arquivos canônicos** (caminho explícito até `.ts`/`.tsx`), sem barrels — ver skill **no-barrel-files**.
 - Alguma feature importa diretamente de uma feature irmã?
 - Código de domínio foi parar em `shared/`?
-- O `index.ts` do módulo/feature foi atualizado com os novos exports necessários?
+- Foi evitado criar `index.ts`/`index.tsx` que só re-exportam outros arquivos?
 
 #### B. Correção e comportamento
 - A lógica faz o que se propõe a fazer?
@@ -55,9 +55,9 @@ Para cada arquivo, avalie:
 - Tipos TypeScript corretos e sem `any` desnecessário?
 - Props de componentes tipadas?
 - Retorno de funções assíncronas tratado corretamente?
-- Contratos entre módulos respeitados (tipos exportados pelo `index.ts`)?
-- Algum type que está em `features/<feature>/types/` é usado por mais de uma feature? → deve ser promovido para `modules/<domain>/types/`
-- Algum type que está em `modules/<domain>/types/` é usado por mais de um módulo? → deve ser promovido para `shared/types/`
+- Contratos entre domínios respeitados (imports diretos aos arquivos estáveis; sem barrels)?
+- Algum type que está em `features/<feature>/types/` é usado por mais de uma feature? → deve ser promovido para `app/<domain>/types/`
+- Algum type que está em `app/<domain>/types/` é usado por mais de um domínio? → deve ser promovido para `shared/types/`
 - Algum type foi duplicado entre features ou módulos em vez de promovido?
 
 ### 3. Classifique os achados
@@ -151,13 +151,12 @@ Se sim, corrija um por vez, confirmando cada mudança com o usuário antes de sa
 
 ## Checklist rápido de arquitetura (use internamente antes de reportar)
 
-- [ ] Arquivo está em `modules/<domínio>/features/<feature>/<camada>/` (ou `src/modules/...` se o repo usar `src/`)?
+- [ ] Arquivo está em `app/<domínio>/features/<feature>/<camada>/`?
 - [ ] Nenhum import direto de outra feature irmã?
-- [ ] Nenhum import de path interno de outro módulo (apenas do `index.ts` público)?
-- [ ] `index.ts` da feature exporta apenas o necessário para o módulo?
-- [ ] `index.ts` do módulo exporta apenas o necessário para fora?
-- [ ] Estado de feature em `features/<feature>/store/`, estado compartilhado em `modules/<domínio>/store/`?
+- [ ] Nenhum barrel (`index.ts` só de re-export); imports explícitos ao arquivo-fonte?
+- [ ] Imports de outro domínio só para arquivos públicos acordados (não internals)?
+- [ ] Estado de feature em `features/<feature>/store/`, estado compartilhado em `app/<domínio>/store/`?
 - [ ] Sem lógica de domínio em `shared/`?
-- [ ] Types usados por mais de uma feature promovidos para `modules/<domínio>/types/`?
-- [ ] Types usados por mais de um módulo promovidos para `shared/types/`?
-- [ ] Nenhum type duplicado entre features ou módulos?
+- [ ] Types usados por mais de uma feature promovidos para `app/<domínio>/types/`?
+- [ ] Types usados por mais de um domínio promovidos para `shared/types/`?
+- [ ] Nenhum type duplicado entre features ou domínios?

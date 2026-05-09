@@ -1,171 +1,114 @@
 ---
-description: Feature Sliced Design dentro de módulos — features, sessions, camadas e promoção de types.
-globs: "**/modules/**/features/**/*.{ts,tsx}"
+description: Feature Sliced Design em app/<domínio> — sem barrels; sessions, camadas e promoção de types.
+globs: "**/app/*/features/**/*.{ts,tsx}"
 alwaysApply: false
 ---
 
-# Feature Sliced Design (within modules)
+# Feature Sliced Design (within domains)
 
 ## Relationship to Modular Architecture
 
-This rule is the inner layer of the architecture defined in **modular-architecture**.
+Inner layer of **modular-architecture**.
 
-- **Module** = domain boundary (e.g. `auth`, `payment`)
-- **Feature** = user-facing capability within that domain (e.g. `login`, `reset-password`, `two-factor`)
+- **Domain** = `src/app/<domínio>/`
+- **Feature** = `features/<feature>/`
 
-Every piece of code inside a module belongs to a feature. There is no "module-level" loose code.
+**Sem barrels:** não há `index.ts` agregador na feature nem no domínio. A página montada é um arquivo concreto (ex. `PostList.tsx`, `LoginPage.tsx`) que outros importam pelo caminho completo.
 
 ## Caminhos
 
-Prefira `src/modules/` neste repositório (alias `@/*` → `./src/*`).
+`src/app/<domínio>/features/...` com `@/*` → `./src/app/*`.
 
 ## Directory Structure
 
 ```
-modules/
+app/
   auth/
     features/
       login/
-        sessions/         # hook + presentation pairs — ver regra session-architecture
-          LoginSession/
-            LoginSession.tsx
-          LoginForm/
-            useLoginForm.ts
-            LoginForm.tsx
-        services/
-        store/
-        types/
-        utils/
-        index.ts
-      reset-password/
         sessions/
-          ...
+          LoginSession/LoginSession.tsx
+          LoginForm/useLoginForm.ts, LoginForm.tsx
         services/
-        types/
-        index.ts
+        LoginPage.tsx           # monta sessions — import direto, não barrel
+      reset-password/
+        ...
     components/
     hooks/
     services/
     store/
     types/
-    index.ts
 ```
 
 ## Rules
 
 ### 1. Every user-facing capability is a feature
-- A feature maps to something a user can do: `login`, `reset-password`, `view-invoice`, `apply-coupon`.
-- Name features after the action or capability, not after technical concerns (`form`, `modal`, `handler`).
-- Features live inside `modules/<domain>/features/<feature-name>/`.
+- Features em `app/<domain>/features/<feature-name>/`.
 
-### 2. Feature has its own layers
-Each feature folder contains only the layers it needs:
+### 2. Feature layers
 
 | Layer | Purpose |
 |---|---|
-| `sessions/` | Hook + presentation pairs — all UI for this feature (see **session-architecture**) |
-| `services/` | API calls / data-fetching specific to this feature |
-| `store/` | Local or ephemeral state owned by this feature |
-| `types/` | TypeScript types used only within this feature |
-| `utils/` | Pure functions used only within this feature |
-| `index.ts` | Assembles sessions into the final page and exports it — no barrel re-exports |
+| `sessions/` | Shells + pares hook/presentation — ver **session-architecture** |
+| `services/` | API / dados da feature |
+| `store/` | Estado da feature |
+| `types/` | Tipos só desta feature |
+| `utils/` | Funções puras só desta feature |
 
-### 2a. Type promotion rule
-A type starts in the feature that first needs it. Promote it as soon as it crosses a boundary:
+Montagem da tela: arquivo **nomeado** na feature (ex. `LoginPage.tsx`), não `index.ts` barrel.
+
+### 2a. Type promotion
 
 | Type scope | Where it lives |
 |---|---|
-| Used by exactly one feature | `features/<feature>/types/` |
-| Used by two or more features of the same module | `modules/<domain>/types/` |
-| Used by two or more modules | `shared/types/` — only if it has no domain-specific logic |
+| Uma feature | `features/<feature>/types/` |
+| Várias features do mesmo domínio | `app/<domain>/types/` |
+| Vários domínios | `shared/types/` (sem lógica de domínio) |
 
-**Never duplicate a type.** If a second feature needs a type that already exists in `features/<feature>/types/`, do not copy it — promote it immediately to `modules/<domain>/types/` and update both features to import from there.
+### 3. Features do not import sibling features
 
-There is no `components/` or `hooks/` folder inside a feature. Components live in `sessions/` as hook/presentation pairs. Hooks live as `use<Name>.ts` files co-located inside the session folder they serve.
+### 4. Domain-level layers
+- Compartilhamento intra-domínio em `app/<domain>/components/`, `hooks/`, etc.
 
-Omit layers that are not needed — do not create empty folders.
-
-### 3. Feature `index.ts` assembles and exports the page
-- The feature `index.ts` composes sessions into the final page component and exports it.
-- It imports sessions directly by file path — no barrel re-exports of raw sessions or hooks.
-- The module's own code may only import from `features/<feature>/index.ts`, never from internal paths.
-
-### 4. Features do not import from sibling features
-- `features/reset-password` must not import from `features/login`.
-- If two features share something, that something is promoted to the module-level layer (`modules/<domain>/components/`, `hooks/`, `services/`, `types/`).
-
-### 5. Module-level layers are for intra-module sharing only
-- `modules/<domain>/components/`, `hooks/`, etc. (outside `features/`) exist exclusively to share code between features of the same module.
-- They are still internal to the module and must not be imported by other modules.
-
-### 6. The module `index.ts` assembles the public API
-- The module's root `index.ts` re-exports only what other modules are allowed to consume.
-- It may import from feature `index.ts` files or from module-level layers.
-- It never imports internal feature paths directly.
-
-### 7. State ownership follows the same rule
-- Feature-specific state lives in `features/<feature>/store/`.
-- State shared across features of the same module lives in `modules/<domain>/store/`.
-- State shared across modules is exposed through the module's public API, never by sharing slices directly.
+### 5. State
+- `features/<feature>/store/` ou `app/<domain>/store/` conforme escopo.
 
 ## Naming Conventions
 
 | Item | Convention | Example |
 |---|---|---|
-| Feature folder | kebab-case verb/noun | `login`, `reset-password`, `apply-coupon` |
-| Component | PascalCase | `LoginForm.tsx`, `ResetPasswordPage.tsx` |
-| Hook | camelCase `use` prefix | `useLogin.ts`, `useResetPassword.ts` |
-| Service | camelCase | `loginService.ts`, `resetPasswordService.ts` |
-| Type file | camelCase `.types.ts` suffix | `login.types.ts` |
-| Store file | camelCase `.store.ts` suffix | `login.store.ts` |
+| Feature folder | kebab-case | `login`, `reset-password` |
+| Page / assembled view | PascalCase `.tsx` | `LoginPage.tsx`, `PostList.tsx` |
 
-## Decision Tree — Where Does This File Go?
+## Decision Tree
 
 ```
-Is it used by only one feature?
-  └─ Yes → place it inside features/<feature>/<layer>/
-
-Is it used by more than one feature within the same module?
-  └─ Yes → promote it to modules/<domain>/<layer>/
-
-Is it used by more than one module?
-  └─ Yes → promote it to shared/
-           (only if it has no domain-specific logic)
+One feature only → features/<feature>/<layer>/
+Multiple features, same domain → app/<domain>/<layer>/
+Multiple domains → shared/ (if generic)
 ```
 
-## What to Check on Architecture Changes
+## What to Check
 
-When adding or changing a feature, verify:
-
-- [ ] The feature folder is named after a user-facing action or capability
-- [ ] There is no `components/` or `hooks/` folder inside the feature — use `sessions/` instead
-- [ ] Each session with logic has exactly `use<Name>.ts` and `<Name>.tsx`; pure layout shells have only `<Name>.tsx`
-- [ ] No `index.ts` barrel exists inside any session folder
-- [ ] No sibling feature is imported directly
-- [ ] Shared intra-module code lives at the module level, not duplicated in features
-- [ ] `features/<feature>/index.ts` exports the assembled page — not raw sessions or hooks
-- [ ] `modules/<domain>/index.ts` exports only what other modules need
-- [ ] Any type used by more than one feature has been promoted to `modules/<domain>/types/` — not duplicated
-- [ ] Any type used by more than one module has been promoted to `shared/types/` — not duplicated
+- [ ] Sem `index.ts` barrel na feature ou no domínio
+- [ ] Página montada é `.tsx` explícito importável por caminho
+- [ ] Sem import direto entre sibling features
+- [ ] Types promovidos conforme tabela
 
 ## Examples
 
 **Correct**
+
 ```ts
-// modules/auth/features/login/sessions/LoginForm/useLoginForm.ts
-import { authApiClient } from 'modules/auth/services/authApiClient'
-import { AuthUser } from 'modules/auth/types/auth.types'
+// Consumidor (outra rota ou domínio)
+import { LoginPage } from '@/auth/features/login/LoginPage'
 
-// modules/auth/features/login/index.ts — assembled page only
-export function LoginPage() { ... }
-
-// modules/auth/index.ts
-export { LoginPage } from './features/login'
+// Dentro da feature
+import { authApiClient } from '@/auth/services/authApiClient'
 ```
 
 **Wrong**
+
 ```ts
-// Import sibling feature sessions ✗
-// Export raw LoginForm from feature index instead of assembled page ✗
-// useState in .tsx presentation instead of hook ✗
+export { LoginPage } from './features/login' // barrel na raiz ✗
 ```

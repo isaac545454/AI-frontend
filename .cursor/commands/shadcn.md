@@ -1,6 +1,6 @@
 # shadcn/ui — Design System Skill
 
-Você é um especialista em Design System com shadcn/ui neste projeto React + TypeScript. Sua responsabilidade é garantir que todo componente UI seja construído sobre primitivos do shadcn/ui localizados em `src/shared/core/components/`, nunca do zero.
+Você é um especialista em Design System com shadcn/ui neste projeto React + TypeScript. Sua responsabilidade é garantir que todo componente UI seja construído sobre primitivos do shadcn/ui localizados em `src/app/shared/core/components/`, nunca do zero.
 
 ## Como usar
 
@@ -17,32 +17,24 @@ Se o usuário não informar subcomando, execute o fluxo padrão (`/shadcn`).
 
 ```
 src/
-  shared/
-    core/
-      components/         ← primitivos shadcn/ui (gerados via CLI)
-        Button/
-          Button.tsx
-          Button.stories.tsx
-          Button.test.tsx
-        Input/
-          Input.tsx
-          Input.stories.tsx
-          Input.test.tsx
-        Dialog/
-          Dialog.tsx
-          Dialog.stories.tsx
-          Dialog.test.tsx
-        ...
-      index.ts            ← re-exporta todos os primitivos do Design System
+  app/
+    shared/
+      core/
+        components/         ← primitivos shadcn/ui (gerados via CLI)
+          Button/
+            Button.tsx
+            Button.stories.tsx
+            Button.test.tsx
+        lib/
+          utils.ts
 ```
 
-> Cada primitivo vive em sua própria pasta PascalCase dentro de `src/shared/core/components/`.
-> A pasta contém exatamente três arquivos: o componente, o story do Storybook e o teste unitário.
-> O alias `@/shared/core/components` (ou equivalente configurado no `tsconfig`/`vite.config`) deve ser usado nos imports.
+> Cada primitivo vive em sua própria pasta PascalCase. **Sem barrel:** importe o arquivo concreto, ex. `import { Button } from "@/shared/core/components/Button/Button"`.
+> O alias `@/*` aponta para `src/app/*` neste repositório.
 
-Wrappers e composições específicas de um domínio **nunca** ficam em `shared/`. Eles ficam em:
-- `src/modules/<domínio>/components/` — compartilhado entre features do mesmo módulo
-- `src/modules/<domínio>/features/<feature>/components/` — exclusivo de uma feature
+Wrappers e composições de domínio **não** ficam em `shared/`. Ficam em:
+- `src/app/<domínio>/components/` — intra-domínio
+- `src/app/<domínio>/features/<feature>/...` — exclusivo da feature
 
 ---
 
@@ -67,7 +59,7 @@ Para cada componente, responda:
 
 | Pergunta | O que verificar |
 |---|---|
-| Usa primitivo shadcn? | Import vindo de `src/shared/core/components/` |
+| Usa primitivo shadcn? | Import vindo de `src/app/shared/core/components/...` (arquivo concreto, sem barrel) |
 | Recria algo que o shadcn já oferece? | Botão, input, label, select, dialog, sheet, popover, tooltip, card, badge, table, form, accordion, tabs, etc. |
 | Customização feita da forma correta? | Via `className` com Tailwind, não sobrescrevendo estilos globais ou criando variantes paralelas |
 | Variantes controladas por CVA? | Se o componente tem variantes (size, variant), usa `class-variance-authority` (padrão shadcn) |
@@ -95,7 +87,7 @@ Para cada componente, responda:
 
 🔴 **[Blocker]** {título}
 > {componente recria X do zero — shadcn já oferece isso via Y}
-> **Como corrigir:** instale com `npx shadcn@latest add Y` e importe de `src/shared/core/components/Y`
+> **Como corrigir:** instale com `npx shadcn@latest add Y` e importe de `@/shared/core/components/<Y>/<Y>`
 
 🟡 **[Warning]** {título}
 > {explicação}
@@ -135,40 +127,37 @@ Execute este fluxo quando o shadcn ainda não estiver configurado no projeto.
    - **style:** New York
    - **base color:** Neutral
    - **CSS variables:** yes
-   - **components path:** `src/shared/core/components` ← obrigatório
-   - **utils path:** `src/shared/core/lib/utils`
+   - **components path:** `src/app/shared/core/components` ← obrigatório (alinhar a `components.json`)
+   - **utils path:** `src/app/shared/core/lib/utils`
    - **tailwind config:** via CSS (Tailwind v4)
-4. Confirme que `components.json` foi criado na raiz com `aliases.components` apontando para `src/shared/core/components`.
-5. Crie `src/shared/core/index.ts` para re-exportar os primitivos instalados.
-6. Garanta que o alias `@` está configurado em `tsconfig.app.json` e `vite.config.ts` apontando para `src/`.
+4. Confirme que `components.json` foi criado na raiz com `aliases.components` apontando para `src/app/shared/core/components`.
+5. **Não** criar `index.ts` barrel em `shared/core`. Cada consumidor importa o primitivo pelo caminho do arquivo (skill **no-barrel-files**).
+6. Garanta que o alias `@/*` em `tsconfig.json` aponta para `src/app/*`.
 7. Instale os componentes básicos do Design System:
 
 ```bash
 npx shadcn@latest add button input label card badge separator skeleton toast
 ```
 
-8. Confirme que todos os arquivos foram gerados em `src/shared/core/components/`.
-9. Atualize `src/shared/core/index.ts` re-exportando cada primitivo instalado.
+8. Confirme que todos os arquivos foram gerados em `src/app/shared/core/components/`.
+9. Consumidores importam cada primitivo pelo path explícito — sem agregar exports em `index.ts`.
 
 ---
 
 ## Fluxo: instalar e integrar — `/shadcn add <componente>`
 
-1. Verifique se o shadcn está inicializado (existe `components.json` com `aliases.components` apontando para `src/shared/core/components`).
+1. Verifique se o shadcn está inicializado (existe `components.json` com `aliases.components` apontando para `src/app/shared/core/components`).
    - Se não estiver: oriente o usuário a rodar `/shadcn init` primeiro.
 2. Execute `npx shadcn@latest add <componente>` no terminal.
-3. O shadcn gera o arquivo em `src/shared/core/components/`. Mova-o para a pasta correta: `src/shared/core/components/<Componente>/<Componente>.tsx`.
+3. O shadcn gera o arquivo em `src/app/shared/core/components/`. Organize em `src/app/shared/core/components/<Componente>/<Componente>.tsx` se necessário.
 4. Crie os arquivos complementares na mesma pasta:
    - `<Componente>.stories.tsx` — story do Storybook com variantes do componente
    - `<Componente>.test.tsx` — teste unitário cobrindo renderização e variantes principais
-5. Adicione o export do novo componente em `src/shared/core/index.ts`.
-6. Mostre ao usuário como importar e usar o componente recém-instalado:
+5. Mostre ao usuário como importar **sem barrel**:
    ```ts
-   import { Button } from 'src/shared/core'
-   // ou via alias
-   import { Button } from '@/shared/core'
+   import { Button } from "@/shared/core/components/Button/Button"
    ```
-7. Se o componente precisa ser customizado (variantes, estilos), aplique via `className` com Tailwind — nunca editando o arquivo gerado pelo shadcn diretamente.
+6. Se o componente precisa ser customizado (variantes, estilos), aplique via `className` com Tailwind — nunca editando o arquivo gerado pelo shadcn diretamente.
 
 **Componentes disponíveis no shadcn/ui:**
 accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button, calendar, card, carousel, chart, checkbox, collapsible, command, context-menu, data-table, date-picker, dialog, drawer, dropdown-menu, form, hover-card, input, input-otp, label, menubar, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, sonner, switch, table, tabs, textarea, toast, toggle, toggle-group, tooltip.
@@ -177,10 +166,10 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 
 ## Fluxo: auditoria completa — `/shadcn audit`
 
-1. Percorra os diretórios de código-fonte do app (ex.: `app/`, `modules/`, `shared/`, e `src/` se existir) e liste `.tsx` relevantes, excluindo `node_modules`.
+1. Percorra `src/app/` (domínios, `shared/`) e liste `.tsx` relevantes, excluindo `node_modules`.
 2. Para cada arquivo, verifique se há elementos HTML nativos (`<button>`, `<input>`, `<select>`, `<dialog>`, `<table>`) que deveriam ser substituídos por primitivos shadcn.
-3. Verifique se `src/shared/core/components/` existe e contém os componentes esperados.
-4. Verifique se `src/shared/core/index.ts` re-exporta todos os primitivos instalados.
+3. Verifique se `src/app/shared/core/components/` existe e contém os componentes esperados.
+4. Confirme que não há dependência de barrel — imports apontam para arquivos concretos em `shared/core/components/`.
 5. Gere um relatório consolidado com todos os achados, agrupados por componente shadcn ausente.
 6. Ao final, liste os comandos `npx shadcn@latest add <x>` necessários para cobrir todos os gaps.
 
@@ -189,13 +178,12 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 ## Regras do especialista
 
 - **Nunca crie HTML UI do zero** quando existe equivalente no shadcn. Botão com `<button className="...">` onde existe `<Button>` é um blocker.
-- **Primitivos shadcn vivem exclusivamente em `src/shared/core/components/<Componente>/`.** Cada componente é uma pasta PascalCase com três arquivos: `<Componente>.tsx`, `<Componente>.stories.tsx` e `<Componente>.test.tsx`. Nunca instale ou mova componentes shadcn para `src/modules/` ou `src/components/`.
+- **Primitivos shadcn vivem exclusivamente em `src/app/shared/core/components/<Componente>/`.** Cada componente é uma pasta PascalCase com três arquivos: `<Componente>.tsx`, `<Componente>.stories.tsx` e `<Componente>.test.tsx`. Nunca instale ou mova componentes shadcn para pastas de domínio sem wrapper.
 - **Customize via `className`, nunca via CSS global ou sobrescrita de arquivos shadcn.** Os arquivos em `shared/core/components/` são gerados — edite-os só se não houver outra forma, e documente o motivo.
 - **Variants via CVA.** Se um componente precisa de variantes (primary/secondary/ghost, sm/md/lg), use `class-variance-authority` seguindo o padrão dos próprios componentes shadcn.
 - **Acessibilidade não é opcional.** O shadcn usa Radix UI por baixo — não remova atributos `aria-*`, `role`, ou `data-*` que garantem comportamento acessível.
-- **Respeite a arquitetura modular.** Wrappers e composições específicas de um domínio ficam em `modules/<domínio>/components/` ou `features/<feature>/components/`, importando de `@/shared/core`.
-- **Não duplique componentes.** Se `Button` já está em `shared/core/components/button.tsx`, não crie outro `CustomButton` paralelo — estenda via `className` ou crie um wrapper no módulo correto que use `Button` internamente.
-- **`shared/core/index.ts` é a porta de entrada.** Todo import externo ao `shared/core/` deve usar o `index.ts`, nunca caminhos internos diretos como `@/shared/core/components/button`.
+- **Arquitetura modular.** Wrappers de domínio ficam em `src/app/<domínio>/components/` ou na feature; importam primitivos pelo caminho explícito, ex. `@/shared/core/components/Button/Button` (sem barrel — skill **no-barrel-files**).
+- **Não duplique componentes.** Se `Button` já existe em `shared/core/components/`, não crie `CustomButton` paralelo — estenda via `className` ou wrapper no domínio.
 
 ---
 
@@ -207,8 +195,8 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 - [ ] Selects usam `<Select>` do shadcn?
 - [ ] Formulários usam `<Form>` + React Hook Form (padrão shadcn)?
 - [ ] Toasts/notificações usam `<Sonner>` ou `<Toast>`?
-- [ ] Cada componente shadcn está em sua própria pasta PascalCase dentro de `src/shared/core/components/<Componente>/`?
+- [ ] Cada componente shadcn está em sua própria pasta PascalCase dentro de `src/app/shared/core/components/<Componente>/`?
 - [ ] A pasta do componente contém `<Componente>.tsx`, `<Componente>.stories.tsx` e `<Componente>.test.tsx`?
-- [ ] `src/shared/core/index.ts` re-exporta todos os primitivos instalados?
-- [ ] Wrappers de domínio importam de `@/shared/core`, não recriam o primitivo?
+- [ ] Imports dos primitivos usam caminho explícito ao arquivo (sem barrel em `shared/core`)?
+- [ ] Wrappers de domínio importam do path concreto do primitivo, não recriam o componente?
 - [ ] Nenhum arquivo em `shared/core/components/` foi editado sem justificativa documentada?
