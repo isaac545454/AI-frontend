@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## Caminhos neste repositório
 
-O `tsconfig` mapeia `@/*` para a raiz do projeto. Use `modules/` e `shared/` na raiz (ao lado de `app/`) **ou** prefixe com `src/` se a equipe padronizar — seja consistente. Os diagramas abaixo mostram `src/` como prefixo opcional.
+O `tsconfig` mapeia `@/*` para `./src/*`. Código de aplicação fica em `src/` (`app/`, `shared/`, `modules/`). Config e `public/` permanecem na raiz do projeto.
 
 ## Core Principle
 

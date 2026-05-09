@@ -12,9 +12,9 @@ Use sempre a pasta no plural: `services/`, não `service/`.
 
 | Escopo | Caminho |
 |--------|---------|
-| Só uma feature usa | `modules/<domínio>/features/<feature>/services/` |
-| Duas ou mais features do mesmo módulo | `modules/<domínio>/services/` (promover) |
-| Primitivo sem regra de negócio entre domínios | `shared/` (ex.: cliente HTTP), não service de domínio |
+| Só uma feature usa | `src/modules/<domínio>/features/<feature>/services/` |
+| Duas ou mais features do mesmo módulo | `src/modules/<domínio>/services/` (promover) |
+| Primitivo sem regra de negócio entre domínios | `src/shared/` (ex.: cliente HTTP), não service de domínio |
 
 ## Responsabilidade
 
@@ -28,7 +28,7 @@ Use sempre a pasta no plural: `services/`, não `service/`.
 
 ## Imports
 
-- **Dentro do módulo:** pode importar de `modules/<domínio>/services/...` ou da feature correspondente.
+- **Dentro do módulo:** pode importar de `src/modules/<domínio>/services/...` ou da feature correspondente.
 - **Outro módulo:** só via `modules/<domínio>/index.ts` — nunca `.../services/arquivo` de outro domínio.
 
 ```typescript
@@ -41,4 +41,4 @@ import { listProducts } from "@/modules/catalog/features/product-list/services/p
 
 ## Estrutura do projeto
 
-Este repo usa `modules/` na raiz (alias `@/*` → raiz). Se no futuro existir `src/`, os mesmos caminhos relativos continuam válidos com o prefixo `src/`.
+Este repo usa `src/modules/`, `src/shared/` e alias `@/*` → `./src/*` (ex.: `@/modules/catalog`, `@/shared`).

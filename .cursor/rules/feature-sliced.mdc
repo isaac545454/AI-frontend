@@ -17,7 +17,7 @@ Every piece of code inside a module belongs to a feature. There is no "module-le
 
 ## Caminhos
 
-Prefira `modules/` na raiz do repo (Next.js com `@/*`) ou `src/modules/` — mantenha um padrão só.
+Prefira `src/modules/` neste repositório (alias `@/*` → `./src/*`).
 
 ## Directory Structure
 
