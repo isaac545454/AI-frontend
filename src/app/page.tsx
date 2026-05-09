@@ -2,17 +2,17 @@ import Link from "next/link";
 
 const modules = [
   {
-    href: "/jsonplaceholder",
+    href: "/jsonplaceholder/postlist",
     title: "JSONPlaceholder",
     description: "Posts com imagens estáticas (Picsum) por ID.",
   },
   {
-    href: "/rick-and-morty",
+    href: "/rick-and-morty/character-list",
     title: "The Rick and Morty API",
     description: "Personagens com arte oficial da API.",
   },
   {
-    href: "/pokemon",
+    href: "/pokemon/pokemon-list",
     title: "PokéAPI",
     description: "Pokémon com sprites do repositório oficial.",
   },

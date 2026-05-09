@@ -1,125 +1,160 @@
 ---
-description: Feature Sliced Design em app/<domínio> — sem barrels; sessions, camadas e promoção de types.
-globs: "**/app/*/features/**/*.{ts,tsx}"
+description: Feature Sliced por rota Next.js — segmento em app/<domínio>/<rota>/ espelha URL; sem barrels; sessions e camadas colocados na pasta da rota.
+globs: "**/app/*/*/**/*.{ts,tsx}"
 alwaysApply: false
 ---
 
-# Feature Sliced Design (within domains)
+# Feature Sliced Design (centrado na rota — Next.js App Router)
 
-## Relationship to Modular Architecture
+## Relação com a arquitetura modular
 
-Inner layer of **modular-architecture**.
+Camada interna de **modular-architecture**.
 
-- **Domain** = `src/app/<domínio>/`
-- **Feature** = `features/<feature>/`
+- **Domínio** = `src/app/<domínio>/` — layout do domínio, shell, código partilhado entre várias URLs desse domínio (`components/`, `hooks/`, `services/`, etc.).
+- **Slice / capability** = **um segmento de rota** = pasta sob o domínio cujo URL é `/<domínio>/<segmento>/`.
 
-**Sem barrels:** não há `index.ts` agregador na feature nem no domínio. A página montada é um arquivo concreto (ex. `PostList.tsx`, `LoginPage.tsx`) que outros importam pelo caminho completo.
+O **centro organizacional é a rota**, não uma pasta `features/` solta na raiz do domínio: cada ecrã ou fluxo principal corresponde a um path URL e a uma pasta com o mesmo nome em kebab-case.
+
+**Sem barrels:** não há `index.ts` agregador no domínio nem na pasta da rota. A vista montada é um ficheiro concreto (ex. `PostListPage.tsx`) importável pelo caminho completo.
+
+## URL ↔ pasta (App Router)
+
+| URL | Entrada do router |
+|-----|-------------------|
+| `http://localhost:3000/jsonplaceholder/postlist` | `src/app/jsonplaceholder/postlist/page.tsx` |
+
+Evitar colocar toda a área num único `page.tsx` em `/<domínio>/page.tsx` quando existem capacidades distintas: preferir **um segmento por capability** (ex. `/jsonplaceholder/postlist`, não só `/jsonplaceholder` com tudo dentro).
+
+**Route groups** `(nome)` do Next.js não entram no URL; o código do slice continua colocado na pasta real sob o domínio (ex. `app/jsonplaceholder/(main)/postlist/page.tsx` → URL ainda `/jsonplaceholder/postlist`).
+
+**Regra prática:** se o utilizador identifica um ecrã pelo path (lista de posts, detalhe, definições), esse path deve existir na árvore `app/` e o código dessa capability deve viver **dentro** da pasta desse segmento.
 
 ## Caminhos
 
-`src/app/<domínio>/features/...` com `@/*` → `./src/app/*`.
+`src/app/<domínio>/<segmento-da-rota>/...` com `@/*` → `./src/app/*` (ex.: `@/jsonplaceholder/postlist/sessions/PostListSession/PostListSession.tsx`).
 
-## Directory Structure
+## Estrutura (exemplo)
 
 ```
 app/
-  auth/
-    features/
-      login/
-        sessions/
-          LoginSession/LoginSession.tsx
-          LoginForm/useLoginForm.ts, LoginForm.tsx
-        services/
-        map/                    # DTOs + map… (API → UI), ver rule map-layer
-        LoginPage.tsx           # monta sessions — import direto, não barrel
-      reset-password/
-        ...
-    components/
+  jsonplaceholder/
+    layout.tsx                 # shell do domínio (opcional)
+    components/                # partilhado entre rotas deste domínio
     hooks/
-    services/
-    store/
+    services/                  # HTTP partilhado no domínio (se aplicável)
     types/
+    postlist/                  # URL: /jsonplaceholder/postlist — tudo da lista aqui
+      page.tsx                 # export default — pode ser fino e importar PostListPage
+      PostListPage.tsx         # montagem nomeada da vista (ou nome equivalente)
+      sessions/
+        PostListSession/PostListSession.tsx
+        PostListFilters/usePostListFilters.ts, PostListFilters.tsx
+      services/
+      map/                     # DTOs + map… (API → UI), ver rule map-layer
+      store/
+      types/
+      utils/
+    outra-rota/
+      page.tsx
+      ...
 ```
 
-## Rules
+Todas as camadas da capability (**sessions**, **services**, **map**, **store**, **types**, **utils**) ficam **colocadas na pasta do segmento** (`postlist/` no exemplo), não em `app/<domínio>/features/<nome>/` à parte da URL.
 
-### 1. Every user-facing capability is a feature
-- Features em `app/<domain>/features/<feature-name>/`.
+Partilha **intra-domínio** entre duas URLs: código em `app/<domínio>/components/`, `hooks/`, `services/`, conforme **modular-architecture**. Partilha só entre rotas irmãs sem subir ao domínio: extrair para um módulo explícito em `app/<domínio>/` ou duplicar até haver motivo para consolidar (evitar dependências entre pastas de segmentos sem contrato claro).
 
-### 2. Feature layers
+## Regras
 
-| Layer | Purpose |
-|---|---|
+### 1. Cada capability visível ao utilizador tem um segmento de rota
+
+- Pasta `app/<domain>/<kebab-segment>/` com `page.tsx`.
+- Nomes de pasta em **kebab-case** alinhados ao path (`postlist` → `/postlist`).
+
+### 2. Camadas do slice (dentro da pasta do segmento)
+
+| Camada | Função |
+|--------|--------|
 | `sessions/` | Shells + pares hook/presentation — ver **session-architecture** |
 | `services/` | API / dados brutos ou já normalizados pela integração — ver **services-layer** |
 | `map/` | DTOs e funções puras `map…` (resposta do service → formato da UI) — ver **map-layer** |
-| `store/` | Estado da feature |
-| `types/` | Tipos só desta feature |
-| `utils/` | Funções puras só desta feature (sem contrato DTO; preferir `map/` quando for API→UI) |
+| `store/` | Estado desta rota / fluxo |
+| `types/` | Tipos só deste slice |
+| `utils/` | Funções puras só deste slice (sem contrato DTO; preferir `map/` quando for API→UI) |
 
-Montagem da tela: arquivo **nomeado** na feature (ex. `LoginPage.tsx`), não `index.ts` barrel.
+Montagem da vista: ficheiro **nomeado** na pasta do segmento (ex. `PostListPage.tsx`), não `index.ts` barrel.
 
-### 2a. Type promotion
+### 2a. Promoção de types
 
-| Type scope | Where it lives |
-|---|---|
-| Uma feature | `features/<feature>/types/` |
-| Várias features do mesmo domínio | `app/<domain>/types/` |
+| Âmbito | Onde fica |
+|--------|-----------|
+| Um slice / uma rota | `<segmento>/types/` |
+| Várias rotas do mesmo domínio | `app/<domain>/types/` |
 | Vários domínios | `shared/types/` (sem lógica de domínio) |
 
-### 3. Features do not import sibling features
+### 3. Slices não importam pastas de segmentos irmãos
 
-### 4. Domain-level layers
-- Compartilhamento intra-domínio em `app/<domain>/components/`, `hooks/`, etc.
+Evitar `postlist/` importar diretamente internals de `outra-rota/`. Partilha via camadas do domínio ou contratos estáveis.
 
-### 5. State
-- `features/<feature>/store/` ou `app/<domain>/store/` conforme escopo.
+### 4. Estado
 
-## Naming Conventions
+`/<segmento>/store/` ou `app/<domain>/store/` conforme o âmbito do estado.
 
-| Item | Convention | Example |
-|---|---|---|
-| Feature folder | kebab-case | `login`, `reset-password` |
-| Page / assembled view | PascalCase `.tsx` | `LoginPage.tsx`, `PostList.tsx` |
+### 5. Domínio sem segmento extra
+
+`app/<domain>/page.tsx` em `http://localhost:3000/<domain>` é válido para **landing** ou dashboard do domínio; capacidades concretas (listas, formulários longos) devem preferir **sub-rotas** (`/<domain>/postlist`, etc.) com código na pasta correspondente.
+
+## Convenções de nome
+
+| Item | Convenção | Exemplo |
+|------|-----------|---------|
+| Pasta do segmento (URL) | kebab-case | `postlist`, `reset-password` |
+| Página / vista montada | PascalCase `.tsx` | `PostListPage.tsx`, `LoginPage.tsx` |
 | Mapper (DTO) | `map` + contexto em camelCase `.ts` | `mapPostListRows.ts` → `mapPostListRows` |
 
-## Decision Tree
+## Árvore de decisão
 
 ```
-One feature only → features/<feature>/<layer>/
-Multiple features, same domain → app/<domain>/<layer>/
-Multiple domains → shared/ (if generic)
+Uma rota / um ecrã → app/<domínio>/<segmento>/<camadas>/
+Várias rotas do mesmo domínio → camadas partilhadas em app/<domínio>/
+Vários domínios → shared/ (se genérico)
 ```
 
 ### Dados vindos de API para listas ou ecrãs
 
-1. Chamada HTTP / cliente em `services/`.
-2. Tipos de apresentação e transformação (renomes, strings formatadas, URLs de capa) em `map/` com `mapNomeDoCaso` + tipos `*Dto`.
+1. Chamada HTTP / cliente em `services/` (do segmento ou do domínio).
+2. Tipos de apresentação e transformação em `map/` com `mapNomeDoCaso` + tipos `*Dto`.
 3. Hook com `useQuery` / `useMutation`: `queryFn` chama o service; **`select: map…`** quando existir DTO.
-4. Componente `.tsx` só consome o que o hook devolve (já DTO), sem importar `services/` nem `map/`.
+4. Componente `.tsx` só consome o que o hook devolve (já DTO), sem importar `services/` nem `map/` diretamente no JSX.
 
-## What to Check
+## Checklist
 
-- [ ] Sem `index.ts` barrel na feature ou no domínio
-- [ ] Página montada é `.tsx` explícito importável por caminho
-- [ ] Sem import direto entre sibling features
+- [ ] Sem `index.ts` barrel no domínio nem na pasta do segmento
+- [ ] Vista montada é `.tsx` explícito importável por caminho completo
+- [ ] Sem import direto entre internals de dois segmentos irmãos (sem contrato)
 - [ ] Types promovidos conforme tabela
-- [ ] Resposta de API usada na UI passa por `map/` (DTO + `map…`); hook usa `select: map…` no React Query quando aplicável
+- [ ] Resposta de API para UI passa por `map/` quando aplicável; hook com `select: map…` no React Query
 
-## Examples
+## Exemplos
 
-**Correct**
+**Correto**
 
 ```ts
-// Consumidor (outra rota ou domínio)
-import { LoginPage } from '@/auth/features/login/LoginPage'
+// Outra rota ou domínio importa a página montada pelo caminho completo
+import { PostListPage } from '@/jsonplaceholder/postlist/PostListPage'
 
-// Dentro da feature
-import { authApiClient } from '@/auth/services/authApiClient'
+// Dentro do segmento postlist
+import { jsonPlaceholderApiClient } from '@/jsonplaceholder/services/jsonPlaceholderApiClient'
 ```
 
-**Wrong**
+**Evitar**
 
 ```ts
-export { LoginPage } from './features/login' // barrel na raiz ✗
+// Capacidade “lista de posts” só em /jsonplaceholder sem segmento dedicado,
+// com dezenas de ficheiros noutro sítio — quando o URL natural seria /jsonplaceholder/postlist
+
+export { PostListPage } from './postlist' // barrel ✗
+```
+
+```ts
+export { PostListPage } from './features/postlist' // barrel na raiz do domínio ✗
 ```
