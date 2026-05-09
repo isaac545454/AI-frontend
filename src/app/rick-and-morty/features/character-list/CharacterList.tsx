@@ -1,22 +1,22 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-
 import { Card } from "@/shared/components/card/Card";
+import { CardGridSkeleton } from "@/shared/components/card-grid-skeleton/CardGridSkeleton";
 import { Pagination } from "@/shared/components/pagination/Pagination";
 
-import { listCharacters } from "./services/characterService";
+import { useCharacterList } from "./useCharacterList";
 
 export function CharacterList() {
-  const [page, setPage] = useState(1);
-
-  const { data, isPending, isError, error } = useQuery({
-    queryKey: ["rick-and-morty", "characters", page],
-    queryFn: () => listCharacters(page),
-  });
-
-  const totalPages = data?.info.pages ?? 1;
+  const {
+    characters,
+    isPending,
+    isError,
+    errorMessage,
+    page,
+    totalPages,
+    handlePageChange,
+    skeletonCount,
+  } = useCharacterList();
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
@@ -30,31 +30,29 @@ export function CharacterList() {
         </p>
       </header>
 
-      {isPending ? (
-        <p className="text-sm text-[var(--color-muted)]">Carregando…</p>
-      ) : null}
+      {isPending ? <CardGridSkeleton count={skeletonCount} /> : null}
       {isError ? (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-          {error instanceof Error ? error.message : "Erro ao carregar dados."}
+          {errorMessage}
         </p>
       ) : null}
 
-      {data ? (
+      {characters ? (
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {data.results.map((character) => (
+          {characters.map((character) => (
             <li key={character.id}>
               <Card
-                imageSrc={character.image}
-                imageAlt={character.name}
-                title={character.name}
-                description={`${character.status} · ${character.species}`}
+                imageSrc={character.imageSrc}
+                imageAlt={character.imageAlt}
+                title={character.title}
+                description={character.description}
               />
             </li>
           ))}
         </ul>
       ) : null}
 
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
     </div>
   );
 }

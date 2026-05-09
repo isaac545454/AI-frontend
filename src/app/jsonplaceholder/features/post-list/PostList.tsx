@@ -1,27 +1,23 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-
 import { Card } from "@/shared/components/card/Card";
+import { CardGridSkeleton } from "@/shared/components/card-grid-skeleton/CardGridSkeleton";
 import { Pagination } from "@/shared/components/pagination/Pagination";
 
-import {
-  listPosts,
-  postCoverImageUrl,
-  POSTS_PAGE_SIZE,
-  POSTS_TOTAL,
-} from "./services/postService";
-
-const totalPages = Math.max(1, Math.ceil(POSTS_TOTAL / POSTS_PAGE_SIZE));
+import { usePostList } from "./usePostList";
 
 export function PostList() {
-  const [page, setPage] = useState(1);
-
-  const { data, isPending, isError, error } = useQuery({
-    queryKey: ["jsonplaceholder", "posts", page],
-    queryFn: () => listPosts(page),
-  });
+  const {
+    posts,
+    isPending,
+    isError,
+    errorMessage,
+    page,
+    totalPages,
+    handlePageChange,
+    skeletonCount,
+    skeletonShowFooter,
+  } = usePostList();
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
@@ -37,21 +33,21 @@ export function PostList() {
       </header>
 
       {isPending ? (
-        <p className="text-sm text-[var(--color-muted)]">Carregando…</p>
+        <CardGridSkeleton count={skeletonCount} showFooter={skeletonShowFooter} />
       ) : null}
       {isError ? (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-          {error instanceof Error ? error.message : "Erro ao carregar posts."}
+          {errorMessage}
         </p>
       ) : null}
 
-      {data ? (
+      {posts ? (
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((post) => (
+          {posts.map((post) => (
             <li key={post.id}>
               <Card
-                imageSrc={postCoverImageUrl(post.id)}
-                imageAlt={`Capa ilustrativa do post ${post.id}`}
+                imageSrc={post.coverImageSrc}
+                imageAlt={post.coverImageAlt}
                 title={post.title}
                 description={post.body}
                 footer={
@@ -65,7 +61,7 @@ export function PostList() {
         </ul>
       ) : null}
 
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
     </div>
   );
 }
