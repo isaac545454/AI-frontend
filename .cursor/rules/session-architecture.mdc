@@ -1,0 +1,140 @@
+---
+description: Sessions dentro de features — shells de layout, split hook/presentation, sem barrels em sessions.
+globs: "**/sessions/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Session Architecture (within features)
+
+## Relationship to Feature Sliced Design
+
+This rule refines how components are placed inside a feature, as defined in **feature-sliced**.
+
+There is no `components/` folder inside a feature. All feature-exclusive components — layout shells and the components that compose them — live inside `sessions/`. Core primitives live in `shared/core/components/`.
+
+| Kind | What it is | Where it lives |
+|---|---|---|
+| **Session** | Layout/structural shell owned exclusively by this feature | `features/<feature>/sessions/` |
+| **Feature component** | Component that composes sessions + core, specific to this feature | `features/<feature>/sessions/` |
+| **Core** | Reusable UI primitive with no feature-specific knowledge | `shared/core/components/` |
+
+A **session** is any component whose shape, layout, or visual structure makes sense only for one specific feature. It is never reused elsewhere. A **core** component is domain-agnostic and can be used by any feature or module.
+
+## Directory Structure
+
+```
+shared/
+  core/
+    components/
+modules/
+  auth/
+    features/
+      login/
+        sessions/
+          LoginSession/
+            LoginSession.tsx
+          LoginForm/
+            useLoginForm.ts
+            LoginForm.tsx
+        index.ts
+```
+
+## Rules
+
+### 1. A session is a feature-exclusive layout shell
+- A session wraps the visual structure of a feature's page or view: split-screen, hero panel, sidebar layout, step-by-step shell, etc.
+- If the layout is only meaningful for one feature, it is a session.
+- Sessions live in `features/<feature>/sessions/`.
+
+### 2. Core components are domain-agnostic
+- `Input`, `Button`, `Checkbox`, `Modal`, `Card`, `Spinner` — components with no knowledge of any domain — live in `shared/core/components/`.
+- A core component must never import from a module or feature.
+- When a primitive is needed in two or more features, extract it to core rather than duplicating it.
+
+### 3. Sessions are never shared
+- A session is private to its feature. It must not be imported by sibling features, the module, or other modules.
+- If two features need the same layout shell, that shell is not a session — extract it to the module-level `components/` (if intra-module) or `shared/` (if cross-module).
+
+### 4. Sessions only compose, never fetch
+- Sessions handle structure and layout only: slots, spacing, breakpoints, visual regions.
+- Data fetching, state, and business logic stay in hooks — never inside a session component.
+
+### 5. Hook / Presentation split
+- Each session with logic is a folder containing exactly two files: `use<Name>.ts` and `<Name>.tsx`.
+- Pure layout shells with no logic are a single `<Name>.tsx` file — no hook needed.
+- **Hook (`use<Name>.ts`)** owns all state, effects, and data wiring. It returns only the values the presentation needs.
+- **Presentation (`<Name>.tsx`)** calls the hook at the top, then renders JSX. No state, no effects, no data fetching beyond the hook call.
+- There is no `index.ts` inside a session folder — import directly from the file you need.
+
+### 6. Feature `index.ts` exports the assembled page
+- The `index.ts` at the feature root is where sessions are composed into the final page component.
+- It imports sessions directly by file path (no barrel exports) and assembles the page.
+- Only the assembled page (or what the module explicitly needs) is exported from `index.ts`.
+
+### 7. No barrel exports inside sessions
+- Never create an `index.ts` inside a session folder.
+
+### 8. Naming
+- Session folders are PascalCase: `LoginSession/`, `LoginForm/`.
+- Hook files: `use<Name>.ts` — e.g. `useLoginForm.ts`.
+- Presentation files: `<Name>.tsx` — e.g. `LoginForm.tsx`.
+
+## Decision Tree — Session or Core?
+
+```
+Is this component a layout/structural shell or feature-specific component?
+  └─ Yes → is it exclusive to one feature?
+              └─ Yes → place it in features/<feature>/sessions/
+              └─ No  → promote to module components/ or shared/
+
+Is this component a UI primitive (input, button, icon…)?
+  └─ Yes → does it have domain-specific logic or copy?
+              └─ No  → Core → shared/core/components/
+              └─ Yes → it belongs inside features/<feature>/sessions/
+```
+
+## What to Check on Architecture Changes
+
+When adding a layout or container component, verify:
+
+- [ ] If it is feature-exclusive layout or component → placed in `features/<feature>/sessions/`
+- [ ] If it is a reusable UI primitive → placed in `shared/core/components/`
+- [ ] Sessions do not fetch data or hold business logic
+- [ ] Sessions are not imported outside their feature folder
+- [ ] Core components have no imports from modules or features
+- [ ] No `index.ts` barrel exists inside any session folder
+- [ ] `features/<feature>/index.ts` exports the assembled page, not raw sessions
+- [ ] Presentation files call their hook at the top — no logic of their own
+
+## Examples
+
+**Correct**
+```tsx
+// sessions/LoginSession/LoginSession.tsx — pure shell
+export function LoginSession({ children }: { children: React.ReactNode }) {
+  return <div className="grid h-screen grid-cols-2">{children}</div>
+}
+
+// sessions/LoginForm/useLoginForm.ts — state + wiring
+export function useLoginForm() { ... }
+
+// sessions/LoginForm/LoginForm.tsx
+import { useLoginForm } from './useLoginForm'
+export function LoginForm() {
+  const props = useLoginForm()
+  return <form>...</form>
+}
+
+// index.ts — assemble page only
+import { LoginSession } from './sessions/LoginSession/LoginSession'
+import { LoginForm } from './sessions/LoginForm/LoginForm'
+export function LoginPage() {
+  return <LoginSession><LoginForm /></LoginSession>
+}
+```
+
+**Wrong**
+- Barrel `index.ts` inside a session folder ✗
+- Exporting raw `LoginForm` from feature `index.ts` instead of assembled page ✗
+- `useState` in presentation `.tsx` ✗
+- Importing `LoginSession` from another feature ✗

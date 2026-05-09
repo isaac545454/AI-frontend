@@ -1,0 +1,44 @@
+---
+description: Onde e como colocar services (API/mock) em módulos e features — nomenclatura, promoção e imports.
+globs: "**/services/**/*.ts"
+alwaysApply: false
+---
+
+# Camada `services/`
+
+Use sempre a pasta no plural: `services/`, não `service/`.
+
+## Onde criar o arquivo
+
+| Escopo | Caminho |
+|--------|---------|
+| Só uma feature usa | `modules/<domínio>/features/<feature>/services/` |
+| Duas ou mais features do mesmo módulo | `modules/<domínio>/services/` (promover) |
+| Primitivo sem regra de negócio entre domínios | `shared/` (ex.: cliente HTTP), não service de domínio |
+
+## Responsabilidade
+
+- Coloque aqui chamadas de API, mocks de dados e adaptação de resposta (DTO → tipo de domínio).
+- Não coloque fetch/axios direto em componentes ou em hooks fora do módulo dono do dado.
+
+## Nomenclatura
+
+- Arquivo: `camelCase` + sufixo que deixe claro o papel, ex. `productService.ts`, `authApiClient.ts`.
+- Exporte funções ou um objeto nomeado; evite default export opaco.
+
+## Imports
+
+- **Dentro do módulo:** pode importar de `modules/<domínio>/services/...` ou da feature correspondente.
+- **Outro módulo:** só via `modules/<domínio>/index.ts` — nunca `.../services/arquivo` de outro domínio.
+
+```typescript
+// ✓ outro módulo
+import { listProducts } from "@/modules/catalog";
+
+// ✗ vaza interno
+import { listProducts } from "@/modules/catalog/features/product-list/services/productService";
+```
+
+## Estrutura do projeto
+
+Este repo usa `modules/` na raiz (alias `@/*` → raiz). Se no futuro existir `src/`, os mesmos caminhos relativos continuam válidos com o prefixo `src/`.
