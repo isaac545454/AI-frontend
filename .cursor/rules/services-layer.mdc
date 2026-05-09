@@ -32,3 +32,7 @@ import { listProducts } from "@/catalog";
 ## Estrutura
 
 Domínios em `src/app/<domínio>/`, shared em `src/app/shared/`, alias `@/*` → `./src/app/*`. Sem `index.ts` agregador — ver skill **no-barrel-files**.
+
+## Separação com `map/`
+
+Mantenha em `services/` apenas integração (HTTP, URLs, parsing mínimo do payload da API). **DTOs** e mapeamento **API → modelo de ecrã** (`mapNome.ts`, tipos `*Dto`) vivem em `features/<feature>/map/` — ver regra **map-layer**.

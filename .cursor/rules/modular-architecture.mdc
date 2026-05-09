@@ -28,6 +28,8 @@ src/
     <domain>/
       features/
         <feature>/
+          services/             # HTTP / integração — ver services-layer
+          map/                  # DTOs + map… (API → UI) — ver map-layer
           PostList.tsx          # exemplo — página/listagem montada aqui ou em sessions/
           ...
       components/
@@ -74,7 +76,9 @@ Pastas reservadas do App Router seguem o Next.js; o **domínio** é a pasta que 
 - Estado no domínio dono; entre domínios, só via código explicitamente importável (arquivo dedicado), não stores internos cruzados.
 
 ### 7. Services
+
 - Chamadas em `app/<domínio>/services/` ou em `features/.../services/` (feature-sliced).
+- Formato consumido pela UI (DTO) e transformações de apresentação a partir da resposta da API ficam em `features/.../map/` (**map-layer**), não misturadas no JSX.
 
 ## Naming Conventions
 
@@ -84,6 +88,7 @@ Pastas reservadas do App Router seguem o Next.js; o **domínio** é a pasta que 
 | Component | PascalCase | `PaymentForm.tsx` |
 | Hook | camelCase with `use` prefix | `usePaymentStatus.ts` |
 | Service | camelCase | `paymentService.ts` |
+| Mapper (DTO) | `map` + contexto, camelCase | `mapPostListRows.ts` |
 | Type file | camelCase | `payment.types.ts` |
 
 ## What to Check on Architecture Changes
@@ -93,6 +98,7 @@ Pastas reservadas do App Router seguem o Next.js; o **domínio** é a pasta que 
 - [ ] Nenhum barrel novo (`index.ts` só de re-export)
 - [ ] `shared/` sem lógica de um domínio específico
 - [ ] Sem dependências circulares entre domínios
+- [ ] Dados de API para UI: `services/` + `map/` + hook com `select` (ver **map-layer**)
 
 ## Examples
 

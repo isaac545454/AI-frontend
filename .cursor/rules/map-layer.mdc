@@ -1,0 +1,56 @@
+---
+description: Camada map/ — DTOs e mapeamento puro API→UI; imports diretos; uso com TanStack Query select.
+globs: "**/features/**/map/**/*.ts"
+alwaysApply: false
+---
+
+# Camada `map/`
+
+Pasta **`map/`** na feature (singular): funções puras que transformam o retorno de `services/` em **DTOs** prontos para hooks e apresentação.
+
+## Onde criar
+
+| Escopo | Caminho |
+|--------|---------|
+| Uma feature | `src/app/<domínio>/features/<feature>/map/` |
+
+Um arquivo por agregado de mapeamento, nome **`map` + contexto** em camelCase no nome do ficheiro, ex.: `mapPostListRows.ts`, `mapPokemonListPage.ts`.
+
+## Responsabilidade
+
+- **Entrada:** tipos / payloads expostos pelo `services/` da mesma feature (modelo da API ou agregado já normalizado pelo service).
+- **Saída:** tipos **DTO** exportados (`*Dto`, `*PageDto`) e uma função **`map…`** que devolve esse formato.
+- **Sem** React, hooks, HTTP ou JSX. Apenas transformação e strings de apresentação derivadas dos dados.
+
+## Fluxo com TanStack Query
+
+O hook chama o service em `queryFn` e referencia o mapper em `select` (referência estável à função `map…`):
+
+```typescript
+import { mapPokemonListPage } from "./map/mapPokemonListPage";
+import { listPokemonPage } from "./services/pokemonService";
+
+useQuery({
+  queryKey: ["pokeapi", "pokemon", page],
+  queryFn: () => listPokemonPage(page),
+  select: mapPokemonListPage,
+});
+```
+
+Assim o cache guarda o resultado bruto e o DTO é derivado de forma memoizada pela biblioteca.
+
+## Imports
+
+- Importar **sempre** o service (ou tipos dele) por **caminho direto** até o ficheiro `.ts`, sem barrels — ver **no-barrel-files**.
+- O componente de apresentação **não** importa `map/` nem `services/` quando o hook já expõe DTOs.
+
+## Relação com outras camadas
+
+| Camada | Conteúdo |
+|--------|----------|
+| `services/` | HTTP, URLs, parsing mínimo da API |
+| `map/` | DTOs + `map…` (API → forma consumida pela UI) |
+| `use*.ts` | Estado, query, `select`, callbacks |
+| `*.tsx` | JSX a partir do retorno do hook |
+
+Ver também **feature-sliced** (tabela de camadas da feature).

@@ -30,6 +30,7 @@ app/
           LoginSession/LoginSession.tsx
           LoginForm/useLoginForm.ts, LoginForm.tsx
         services/
+        map/                    # DTOs + map… (API → UI), ver rule map-layer
         LoginPage.tsx           # monta sessions — import direto, não barrel
       reset-password/
         ...
@@ -50,10 +51,11 @@ app/
 | Layer | Purpose |
 |---|---|
 | `sessions/` | Shells + pares hook/presentation — ver **session-architecture** |
-| `services/` | API / dados da feature |
+| `services/` | API / dados brutos ou já normalizados pela integração — ver **services-layer** |
+| `map/` | DTOs e funções puras `map…` (resposta do service → formato da UI) — ver **map-layer** |
 | `store/` | Estado da feature |
 | `types/` | Tipos só desta feature |
-| `utils/` | Funções puras só desta feature |
+| `utils/` | Funções puras só desta feature (sem contrato DTO; preferir `map/` quando for API→UI) |
 
 Montagem da tela: arquivo **nomeado** na feature (ex. `LoginPage.tsx`), não `index.ts` barrel.
 
@@ -79,6 +81,7 @@ Montagem da tela: arquivo **nomeado** na feature (ex. `LoginPage.tsx`), não `in
 |---|---|---|
 | Feature folder | kebab-case | `login`, `reset-password` |
 | Page / assembled view | PascalCase `.tsx` | `LoginPage.tsx`, `PostList.tsx` |
+| Mapper (DTO) | `map` + contexto em camelCase `.ts` | `mapPostListRows.ts` → `mapPostListRows` |
 
 ## Decision Tree
 
@@ -88,12 +91,20 @@ Multiple features, same domain → app/<domain>/<layer>/
 Multiple domains → shared/ (if generic)
 ```
 
+### Dados vindos de API para listas ou ecrãs
+
+1. Chamada HTTP / cliente em `services/`.
+2. Tipos de apresentação e transformação (renomes, strings formatadas, URLs de capa) em `map/` com `mapNomeDoCaso` + tipos `*Dto`.
+3. Hook com `useQuery` / `useMutation`: `queryFn` chama o service; **`select: map…`** quando existir DTO.
+4. Componente `.tsx` só consome o que o hook devolve (já DTO), sem importar `services/` nem `map/`.
+
 ## What to Check
 
 - [ ] Sem `index.ts` barrel na feature ou no domínio
 - [ ] Página montada é `.tsx` explícito importável por caminho
 - [ ] Sem import direto entre sibling features
 - [ ] Types promovidos conforme tabela
+- [ ] Resposta de API usada na UI passa por `map/` (DTO + `map…`); hook usa `select: map…` no React Query quando aplicável
 
 ## Examples
 
