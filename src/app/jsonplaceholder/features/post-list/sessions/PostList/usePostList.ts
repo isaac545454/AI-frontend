@@ -3,14 +3,14 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 
-import { mapPostListRows } from "./map/mapPostListRows";
-import {
-  listPosts,
-  POSTS_PAGE_SIZE,
-  POSTS_TOTAL,
-} from "./services/postService";
+import { mapPostListRows } from "../../map/mapPostListRows";
+import { postListConfig } from "../../services/postListConfig";
+import { listPosts } from "../../services/postService";
 
-const totalPages = Math.max(1, Math.ceil(POSTS_TOTAL / POSTS_PAGE_SIZE));
+const totalPages = Math.max(
+  1,
+  Math.ceil(postListConfig.totalPosts / postListConfig.pageSize),
+);
 
 export function usePostList() {
   const [page, setPage] = useState(1);

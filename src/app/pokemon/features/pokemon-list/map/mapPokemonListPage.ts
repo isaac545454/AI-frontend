@@ -1,10 +1,8 @@
-import { listPokemonPage } from "../services/pokemonService";
+import type { listPokemonPage } from "../services/pokemonService";
 
-export type PokemonListPagePayload = Awaited<
-  ReturnType<typeof listPokemonPage>
->;
+type PokemonListPagePayload = Awaited<ReturnType<typeof listPokemonPage>>;
 
-export type PokemonListItemDto = {
+type PokemonListItemDto = {
   id: number;
   imageSrc: string;
   imageAlt: string;
@@ -12,7 +10,7 @@ export type PokemonListItemDto = {
   description: string;
 };
 
-export type PokemonListPageDto = {
+type PokemonListPageDto = {
   totalPages: number;
   items: PokemonListItemDto[];
 };

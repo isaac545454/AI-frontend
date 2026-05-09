@@ -10,7 +10,7 @@ import type { ErrorBoundaryFallbackProps } from "@/shared/components/error-bound
 import { Pagination } from "@/shared/components/pagination/Pagination";
 import { QueryErrorFallback } from "@/shared/components/query-error-fallback/QueryErrorFallback";
 
-import { POKEMON_PAGE_SIZE } from "./services/pokemonService";
+import { pokemonListConfig } from "../../services/pokemonListConfig";
 import { usePokemonList } from "./usePokemonList";
 
 function PokemonListErrorFallback(props: ErrorBoundaryFallbackProps) {
@@ -71,7 +71,7 @@ export function PokemonList() {
           >
             <Suspense
               fallback={
-                <CardGridSkeleton count={POKEMON_PAGE_SIZE} />
+                <CardGridSkeleton count={pokemonListConfig.pageSize} />
               }
             >
               <PokemonListContent />

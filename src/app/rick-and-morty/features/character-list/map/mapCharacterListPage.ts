@@ -1,6 +1,9 @@
-import type { CharacterListResponse } from "../services/characterService";
+import type { listCharacters } from "../services/characterService";
+import { characterListConfig } from "../services/characterListConfig";
 
-export type CharacterListItemDto = {
+type CharacterListResponse = Awaited<ReturnType<typeof listCharacters>>;
+
+type CharacterListItemDto = {
   id: number;
   imageSrc: string;
   imageAlt: string;
@@ -8,7 +11,7 @@ export type CharacterListItemDto = {
   description: string;
 };
 
-export type CharacterListPageDto = {
+type CharacterListPageDto = {
   totalPages: number;
   characters: CharacterListItemDto[];
 };
@@ -17,7 +20,10 @@ export function mapCharacterListPage(
   data: CharacterListResponse,
 ): CharacterListPageDto {
   return {
-    totalPages: data.info.pages,
+    totalPages: Math.max(
+      1,
+      Math.ceil(data.info.count / characterListConfig.pageSize),
+    ),
     characters: data.results.map((character) => ({
       id: character.id,
       imageSrc: character.image,

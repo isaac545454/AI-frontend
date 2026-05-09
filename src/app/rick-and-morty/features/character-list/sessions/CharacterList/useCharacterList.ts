@@ -3,16 +3,16 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 
-import { mapPokemonListPage } from "./map/mapPokemonListPage";
-import { listPokemonPage } from "./services/pokemonService";
+import { mapCharacterListPage } from "../../map/mapCharacterListPage";
+import { listCharacters } from "../../services/characterService";
 
-export function usePokemonList() {
+export function useCharacterList() {
   const [page, setPage] = useState(1);
 
   const { data } = useSuspenseQuery({
-    queryKey: ["pokeapi", "pokemon", page],
-    queryFn: () => listPokemonPage(page),
-    select: mapPokemonListPage,
+    queryKey: ["rick-and-morty", "characters", page],
+    queryFn: () => listCharacters(page),
+    select: mapCharacterListPage,
   });
 
   const handlePageChange = useCallback((nextPage: number) => {
@@ -20,7 +20,7 @@ export function usePokemonList() {
   }, []);
 
   return {
-    items: data.items,
+    characters: data.characters,
     page,
     totalPages: data.totalPages,
     handlePageChange,

@@ -10,36 +10,32 @@ import type { ErrorBoundaryFallbackProps } from "@/shared/components/error-bound
 import { Pagination } from "@/shared/components/pagination/Pagination";
 import { QueryErrorFallback } from "@/shared/components/query-error-fallback/QueryErrorFallback";
 
-import { POSTS_PAGE_SIZE } from "./services/postService";
-import { usePostList } from "./usePostList";
+import { characterListConfig } from "../../services/characterListConfig";
+import { useCharacterList } from "./useCharacterList";
 
-function PostListErrorFallback(props: ErrorBoundaryFallbackProps) {
+function CharacterListErrorFallback(props: ErrorBoundaryFallbackProps) {
   return (
     <QueryErrorFallback
-      title="Não foi possível carregar os posts."
+      title="Não foi possível carregar os personagens."
       {...props}
     />
   );
 }
 
-function PostListContent() {
-  const { posts, page, totalPages, handlePageChange } = usePostList();
+function CharacterListContent() {
+  const { characters, page, totalPages, handlePageChange } =
+    useCharacterList();
 
   return (
     <>
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => (
-          <li key={post.id}>
+        {characters.map((character) => (
+          <li key={character.id}>
             <Card
-              imageSrc={post.coverImageSrc}
-              imageAlt={post.coverImageAlt}
-              title={post.title}
-              description={post.body}
-              footer={
-                <span className="text-xs font-medium text-[var(--color-muted)]">
-                  Post #{post.id} · usuário {post.userId}
-                </span>
-              }
+              imageSrc={character.imageSrc}
+              imageAlt={character.imageAlt}
+              title={character.title}
+              description={character.description}
             />
           </li>
         ))}
@@ -54,32 +50,29 @@ function PostListContent() {
   );
 }
 
-export function PostList() {
+export function CharacterList() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-foreground)]">
-          JSONPlaceholder — Posts
+          Rick and Morty — Personagens
         </h1>
         <p className="text-sm text-[var(--color-muted)]">
-          Listagem paginada via{" "}
-          <span className="font-mono text-xs">jsonplaceholder.typicode.com</span>
-          ; imagens estáticas (Picsum) por ID do post.
+          Dados da{" "}
+          <span className="font-mono text-xs">rickandmortyapi.com</span>.
         </p>
       </header>
 
       <QueryErrorResetBoundary>
         {({ reset }) => (
-          <ErrorBoundary onReset={reset} FallbackComponent={PostListErrorFallback}>
+          <ErrorBoundary
+            onReset={reset}
+            FallbackComponent={CharacterListErrorFallback}
+          >
             <Suspense
-              fallback={
-                <CardGridSkeleton
-                  count={POSTS_PAGE_SIZE}
-                  showFooter
-                />
-              }
+              fallback={<CardGridSkeleton count={characterListConfig.pageSize} />}
             >
-              <PostListContent />
+              <CharacterListContent />
             </Suspense>
           </ErrorBoundary>
         )}

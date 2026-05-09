@@ -1,11 +1,13 @@
 import { httpClient } from "@/shared/lib/http/httpClient";
 
+import { characterListConfig } from "./characterListConfig";
+
 const BASE = "https://rickandmortyapi.com/api";
 
-/** Página padrão da API: até 20 resultados (última página pode ter menos). */
-export const CHARACTERS_PAGE_SIZE = 20;
+/** A API REST devolve até 20 documentos por página (sem parâmetro de limite). */
+const RICK_AND_MORTY_API_PAGE_SIZE = 20;
 
-export type CharacterSummary = {
+type CharacterSummary = {
   id: number;
   name: string;
   status: string;
@@ -13,7 +15,7 @@ export type CharacterSummary = {
   image: string;
 };
 
-export type CharacterListResponse = {
+type CharacterListResponse = {
   info: {
     count: number;
     pages: number;
@@ -23,14 +25,50 @@ export type CharacterListResponse = {
   results: CharacterSummary[];
 };
 
-export async function listCharacters(
-  page: number,
+async function fetchCharacterApiPage(
+  apiPage: number,
 ): Promise<CharacterListResponse> {
   const { data } = await httpClient.get<CharacterListResponse>(
     `${BASE}/character`,
     {
-      params: { page },
+      params: { page: apiPage },
     },
   );
   return data;
+}
+
+export async function listCharacters(
+  appPage: number,
+): Promise<CharacterListResponse> {
+  const pageSize = characterListConfig.pageSize;
+  const start = (appPage - 1) * pageSize;
+  const firstApiPage = Math.floor(start / RICK_AND_MORTY_API_PAGE_SIZE) + 1;
+  const end = start + pageSize;
+  const lastApiPage =
+    Math.floor(Math.max(0, end - 1) / RICK_AND_MORTY_API_PAGE_SIZE) + 1;
+
+  if (firstApiPage === lastApiPage) {
+    const data = await fetchCharacterApiPage(firstApiPage);
+    const sliceStart = start % RICK_AND_MORTY_API_PAGE_SIZE;
+    return {
+      info: data.info,
+      results: data.results.slice(sliceStart, sliceStart + pageSize),
+    };
+  }
+
+  const [first, last] = await Promise.all([
+    fetchCharacterApiPage(firstApiPage),
+    fetchCharacterApiPage(lastApiPage),
+  ]);
+
+  const fromFirst = first.results.slice(
+    start % RICK_AND_MORTY_API_PAGE_SIZE,
+  );
+  const need = pageSize - fromFirst.length;
+  const fromLast = last.results.slice(0, need);
+
+  return {
+    info: first.info,
+    results: [...fromFirst, ...fromLast],
+  };
 }
