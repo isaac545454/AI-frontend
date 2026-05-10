@@ -3,52 +3,13 @@
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 
-import { Card } from "@/shared/components/card/Card";
 import { CardGridSkeleton } from "@/shared/components/card-grid-skeleton/CardGridSkeleton";
 import { ErrorBoundary } from "@/shared/components/error-boundary/ErrorBoundary";
-import type { ErrorBoundaryFallbackProps } from "@/shared/components/error-boundary/ErrorBoundary";
-import { Pagination } from "@/shared/components/pagination/Pagination";
-import { QueryErrorFallback } from "@/shared/components/query-error-fallback/QueryErrorFallback";
 
 import { characterListConfig } from "../../services/characterListConfig";
-import { useCharacterList } from "./useCharacterList";
 
-function CharacterListErrorFallback(props: ErrorBoundaryFallbackProps) {
-  return (
-    <QueryErrorFallback
-      title="Não foi possível carregar os personagens."
-      {...props}
-    />
-  );
-}
-
-function CharacterListContent() {
-  const { characters, page, totalPages, handlePageChange } =
-    useCharacterList();
-
-  return (
-    <>
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {characters.map((character) => (
-          <li key={character.id}>
-            <Card
-              imageSrc={character.imageSrc}
-              imageAlt={character.imageAlt}
-              title={character.title}
-              description={character.description}
-            />
-          </li>
-        ))}
-      </ul>
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
-    </>
-  );
-}
+import { CharacterListContent } from "./CharacterListContent";
+import { CharacterListErrorFallback } from "./CharacterListErrorFallback";
 
 export function CharacterList() {
   return (
@@ -70,7 +31,9 @@ export function CharacterList() {
             FallbackComponent={CharacterListErrorFallback}
           >
             <Suspense
-              fallback={<CardGridSkeleton count={characterListConfig.pageSize} />}
+              fallback={
+                <CardGridSkeleton count={characterListConfig.pageSize} />
+              }
             >
               <CharacterListContent />
             </Suspense>

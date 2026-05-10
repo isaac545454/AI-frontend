@@ -3,56 +3,13 @@
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 
-import { Card } from "@/shared/components/card/Card";
 import { CardGridSkeleton } from "@/shared/components/card-grid-skeleton/CardGridSkeleton";
 import { ErrorBoundary } from "@/shared/components/error-boundary/ErrorBoundary";
-import type { ErrorBoundaryFallbackProps } from "@/shared/components/error-boundary/ErrorBoundary";
-import { Pagination } from "@/shared/components/pagination/Pagination";
-import { QueryErrorFallback } from "@/shared/components/query-error-fallback/QueryErrorFallback";
 
 import { postListConfig } from "../../services/postListConfig";
-import { usePostList } from "./usePostList";
 
-function PostListErrorFallback(props: ErrorBoundaryFallbackProps) {
-  return (
-    <QueryErrorFallback
-      title="Não foi possível carregar os posts."
-      {...props}
-    />
-  );
-}
-
-function PostListContent() {
-  const { posts, page, totalPages, handlePageChange } = usePostList();
-
-  return (
-    <>
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => (
-          <li key={post.id}>
-            <Card
-              imageSrc={post.coverImageSrc}
-              imageAlt={post.coverImageAlt}
-              title={post.title}
-              description={post.body}
-              footer={
-                <span className="text-xs font-medium text-[var(--color-muted)]">
-                  Post #{post.id} · usuário {post.userId}
-                </span>
-              }
-            />
-          </li>
-        ))}
-      </ul>
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
-    </>
-  );
-}
+import { PostListContent } from "./PostListContent";
+import { PostListErrorFallback } from "./PostListErrorFallback";
 
 export function PostList() {
   return (

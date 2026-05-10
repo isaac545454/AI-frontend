@@ -3,51 +3,13 @@
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 
-import { Card } from "@/shared/components/card/Card";
 import { CardGridSkeleton } from "@/shared/components/card-grid-skeleton/CardGridSkeleton";
 import { ErrorBoundary } from "@/shared/components/error-boundary/ErrorBoundary";
-import type { ErrorBoundaryFallbackProps } from "@/shared/components/error-boundary/ErrorBoundary";
-import { Pagination } from "@/shared/components/pagination/Pagination";
-import { QueryErrorFallback } from "@/shared/components/query-error-fallback/QueryErrorFallback";
 
 import { pokemonListConfig } from "../../services/pokemonListConfig";
-import { usePokemonList } from "./usePokemonList";
 
-function PokemonListErrorFallback(props: ErrorBoundaryFallbackProps) {
-  return (
-    <QueryErrorFallback
-      title="Não foi possível carregar os Pokémon."
-      {...props}
-    />
-  );
-}
-
-function PokemonListContent() {
-  const { items, page, totalPages, handlePageChange } = usePokemonList();
-
-  return (
-    <>
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((pokemon) => (
-          <li key={pokemon.id}>
-            <Card
-              imageSrc={pokemon.imageSrc}
-              imageAlt={pokemon.imageAlt}
-              title={pokemon.title}
-              description={pokemon.description}
-            />
-          </li>
-        ))}
-      </ul>
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
-    </>
-  );
-}
+import { PokemonListContent } from "./PokemonListContent";
+import { PokemonListErrorFallback } from "./PokemonListErrorFallback";
 
 export function PokemonList() {
   return (
