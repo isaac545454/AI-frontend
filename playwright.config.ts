@@ -21,7 +21,16 @@ export default defineConfig({
     navigationTimeout: 45_000,
     actionTimeout: 15_000,
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        /** Fora de CI usa o Chrome instalado; evita depender do cache em ~/Library/Caches/ms-playwright. */
+        ...(process.env.CI ? {} : { channel: "chrome" as const }),
+      },
+    },
+  ],
   webServer: {
     command: "pnpm dev",
     url: "http://localhost:3000",

@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "playwright install chromium",
+    "test:e2e:install": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:local": "env -u CI playwright test",
     "test:e2e:headed": "playwright test --headed",
