@@ -43,7 +43,7 @@ export default function Home() {
           <li key={item.href}>
             <Link
               href={item.href}
-              className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] p-5 shadow-sm transition-colors hover:border-zinc-400 hover:shadow-md dark:hover:border-zinc-600"
+              className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] p-5 shadow-sm transition-colors hover:border-zinc-500 hover:shadow-md"
             >
               <span className="block text-lg font-medium text-[var(--color-foreground)]">
                 {item.title}

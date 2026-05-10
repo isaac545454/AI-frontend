@@ -13,7 +13,7 @@ export default function PokemonPage() {
       </header>
       <Link
         href="/pokemon/pokemon-list"
-        className="inline-flex w-fit rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:border-zinc-400 hover:shadow-sm dark:hover:border-zinc-600"
+        className="inline-flex w-fit rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-sm font-medium text-[var(--color-foreground)] transition-colors hover:border-zinc-500 hover:shadow-sm"
       >
         Abrir lista de Pokémon
       </Link>

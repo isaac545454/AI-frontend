@@ -23,7 +23,7 @@ export function Pagination({
         type="button"
         disabled={!canPrev}
         onClick={() => canPrev && onPageChange(page - 1)}
-        className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors enabled:hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:enabled:hover:bg-zinc-900"
+        className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors enabled:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
       >
         Anterior
       </button>
@@ -34,7 +34,7 @@ export function Pagination({
         type="button"
         disabled={!canNext}
         onClick={() => canNext && onPageChange(page + 1)}
-        className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors enabled:hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:enabled:hover:bg-zinc-900"
+        className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition-colors enabled:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
       >
         Próxima
       </button>

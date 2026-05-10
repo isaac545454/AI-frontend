@@ -22,7 +22,7 @@ export function Card({
     <article
       className={`flex flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] shadow-sm transition-shadow hover:shadow-md ${className ?? ""}`}
     >
-      <div className="relative aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-900">
+      <div className="relative aspect-[16/10] w-full bg-zinc-900">
         <Image
           src={imageSrc}
           alt={imageAlt}
