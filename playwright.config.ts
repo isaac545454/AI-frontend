@@ -2,11 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: ".",
-  testMatch: [
-    "src/app/tests-e2e/**/*.spec.ts",
-    "src/app/*/tests-e2e/**/*.spec.ts",
-    "src/app/*/*/tests-e2e/**/*.spec.ts",
-  ],
+  testMatch: ["apps/**/src/app/**/tests-e2e/**/*.spec.ts"],
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   timeout: 60_000,
@@ -32,8 +28,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm dev:stack",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
   },
 });

@@ -1,0 +1,13 @@
+{
+  "name": "@next-modular-arch/module-registry",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./plugin-manifest": "./src/plugin-manifest.ts",
+    "./manifests/jsonplaceholder": "./src/manifests/jsonplaceholder.ts",
+    "./manifests/pokemon": "./src/manifests/pokemon.ts",
+    "./manifests/rick-and-morty": "./src/manifests/rick-and-morty.ts",
+    "./registry": "./src/registry.ts"
+  }
+}

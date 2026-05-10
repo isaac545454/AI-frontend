@@ -1,0 +1,31 @@
+{
+  "name": "@next-modular-arch/query",
+  "description": "TanStack Query: shared defaults (createQueryClient) and curated re-exports via explicit subpaths (no index barrel).",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/createQueryClient.ts",
+    "./createQueryClient": "./src/createQueryClient.ts",
+    "./QueryClient": "./src/QueryClient.ts",
+    "./QueryClientProvider": "./src/QueryClientProvider.tsx",
+    "./QueryErrorResetBoundary": "./src/QueryErrorResetBoundary.tsx",
+    "./useInfiniteQuery": "./src/useInfiniteQuery.ts",
+    "./useMutation": "./src/useMutation.ts",
+    "./useQuery": "./src/useQuery.ts",
+    "./useQueryClient": "./src/useQueryClient.ts",
+    "./useSuspenseQuery": "./src/useSuspenseQuery.ts"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.100.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.100.9",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  }
+}

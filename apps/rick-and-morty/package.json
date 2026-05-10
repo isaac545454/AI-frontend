@@ -1,0 +1,30 @@
+{
+  "name": "@next-modular-arch/rick-and-morty",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NEXT_PUBLIC_HOST_ORIGIN=http://localhost:3000 next dev --port 3003",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@next-modular-arch/http": "workspace:*",
+    "@next-modular-arch/query": "workspace:*",
+    "@next-modular-arch/ui-data": "workspace:*",
+    "@next-modular-arch/ui-errors": "workspace:*",
+    "@tanstack/react-query": "^5.100.9",
+    "axios": "^1.16.0",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query-devtools": "^5.100.9",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -2,10 +2,20 @@
   "name": "next-modular-arch",
   "version": "0.1.0",
   "private": true,
+  "pnpm": {
+    "packageExtensions": {
+      "postcss@*": {
+        "dependencies": {
+          "nanoid": "3.3.7"
+        }
+      }
+    }
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "pnpm dev:stack",
+    "dev:stack": "concurrently -k -n home,jp,pk,rm -c blue,green,yellow,magenta \"pnpm --filter @next-modular-arch/home dev\" \"pnpm --filter @next-modular-arch/jsonplaceholder dev\" \"pnpm --filter @next-modular-arch/pokemon dev\" \"pnpm --filter @next-modular-arch/rick-and-morty dev\"",
+    "dev:home": "pnpm --filter @next-modular-arch/home dev",
+    "build": "pnpm -r --filter \"./apps/**\" run build",
     "lint": "eslint",
     "postinstall": "playwright install chromium",
     "test:e2e:install": "playwright install chromium",
@@ -15,23 +25,11 @@
     "test:e2e:ci": "CI=true playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
-  "dependencies": {
-    "@tanstack/react-query": "^5.100.9",
-    "axios": "^1.16.0",
-    "next": "16.2.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
-  },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@tailwindcss/postcss": "^4",
-    "@tanstack/react-query-devtools": "^5.100.9",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "concurrently": "^9.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }

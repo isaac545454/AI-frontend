@@ -1,0 +1,31 @@
+{
+  "name": "@next-modular-arch/ui-data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./card/Card": "./src/card/Card.tsx",
+    "./card-skeleton/CardSkeleton": "./src/card-skeleton/CardSkeleton.tsx",
+    "./card-grid-skeleton/CardGridSkeleton": "./src/card-grid-skeleton/CardGridSkeleton.tsx",
+    "./pagination/Pagination": "./src/pagination/Pagination.tsx",
+    "./query-error-fallback/QueryErrorFallback": "./src/query-error-fallback/QueryErrorFallback.tsx",
+    "./module-back-nav/ModuleBackNav": "./src/module-back-nav/ModuleBackNav.tsx"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.100.9",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.100.9",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "dependencies": {
+    "@next-modular-arch/ui-errors": "workspace:*"
+  }
+}
