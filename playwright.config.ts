@@ -13,8 +13,6 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL: "http://localhost:3000",
-    /** Fora de CI o Chromium abre visível; em CI (`test:e2e:ci`) roda headless. */
-    headless: !!process.env.CI,
     /** `PW_RECORD_VIDEO=1 pnpm test:e2e` grava `.webm` em `test-results/`. */
     video: process.env.PW_RECORD_VIDEO === "1" ? "on" : "off",
     trace: "on-first-retry",
